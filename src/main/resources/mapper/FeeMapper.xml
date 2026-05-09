@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.property.mapper.FeeMapper">
+
+    <resultMap id="feeResultMap" type="Fee">
+        <id property="id" column="id"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="houseId" column="house_id"/>
+        <result property="feeType" column="fee_type"/>
+        <result property="amount" column="amount"/>
+        <result property="shouldPayDate" column="should_pay_date"/>
+        <result property="status" column="status"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="houseInfo" column="house_info"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="feeResultMap">
+        SELECT f.*, o.name AS owner_name,
+               CONCAT(h.building, '-', h.unit, '-', h.room_number) AS house_info
+        FROM fee f
+        LEFT JOIN owner o ON f.owner_id = o.id
+        LEFT JOIN house h ON f.house_id = h.id
+        WHERE f.id = #{id}
+    </select>
+
+    <select id="selectByCondition" resultMap="feeResultMap">
+        SELECT f.*, o.name AS owner_name,
+               CONCAT(h.building, '-', h.unit, '-', h.room_number) AS house_info
+        FROM fee f
+        LEFT JOIN owner o ON f.owner_id = o.id
+        LEFT JOIN house h ON f.house_id = h.id
+        <where>
+            <if test="ownerId != null">AND f.owner_id = #{ownerId}</if>
+            <if test="feeType != null and feeType != ''">AND f.fee_type = #{feeType}</if>
+            <if test="status != null and status != ''">AND f.status = #{status}</if>
+        </where>
+        ORDER BY f.id DESC
+    </select>
+
+    <select id="selectByPage" resultMap="feeResultMap">
+        SELECT f.*, o.name AS owner_name,
+               CONCAT(h.building, '-', h.unit, '-', h.room_number) AS house_info
+        FROM fee f
+        LEFT JOIN owner o ON f.owner_id = o.id
+        LEFT JOIN house h ON f.house_id = h.id
+        <where>
+            <if test="ownerId != null">AND f.owner_id = #{ownerId}</if>
+            <if test="feeType != null and feeType != ''">AND f.fee_type = #{feeType}</if>
+            <if test="status != null and status != ''">AND f.status = #{status}</if>
+        </where>
+        ORDER BY f.id DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectCount" resultType="int">
+        SELECT COUNT(*) FROM fee
+        <where>
+            <if test="ownerId != null">AND owner_id = #{ownerId}</if>
+            <if test="feeType != null and feeType != ''">AND fee_type = #{feeType}</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+        </where>
+    </select>
+
+    <select id="selectByOwnerId" resultMap="feeResultMap">
+        SELECT f.*, o.name AS owner_name,
+               CONCAT(h.building, '-', h.unit, '-', h.room_number) AS house_info
+        FROM fee f
+        LEFT JOIN owner o ON f.owner_id = o.id
+        LEFT JOIN house h ON f.house_id = h.id
+        WHERE f.owner_id = #{ownerId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO fee (owner_id, house_id, fee_type, amount, should_pay_date, status)
+        VALUES (#{ownerId}, #{houseId}, #{feeType}, #{amount}, #{shouldPayDate}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE fee
+        <set>
+            <if test="ownerId != null">owner_id = #{ownerId},</if>
+            <if test="houseId != null">house_id = #{houseId},</if>
+            <if test="feeType != null">fee_type = #{feeType},</if>
+            <if test="amount != null">amount = #{amount},</if>
+            <if test="shouldPayDate != null">should_pay_date = #{shouldPayDate},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM fee WHERE id = #{id}
+    </delete>
+</mapper>

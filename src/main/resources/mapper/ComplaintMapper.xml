@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.property.mapper.ComplaintMapper">
+
+    <resultMap id="complaintResultMap" type="Complaint">
+        <id property="id" column="id"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="createTime" column="create_time"/>
+        <result property="status" column="status"/>
+        <result property="ownerName" column="owner_name"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="complaintResultMap">
+        SELECT c.*, o.name AS owner_name
+        FROM complaint c LEFT JOIN owner o ON c.owner_id = o.id
+        WHERE c.id = #{id}
+    </select>
+
+    <select id="selectByCondition" resultMap="complaintResultMap">
+        SELECT c.*, o.name AS owner_name
+        FROM complaint c LEFT JOIN owner o ON c.owner_id = o.id
+        <where>
+            <if test="ownerId != null">AND c.owner_id = #{ownerId}</if>
+            <if test="status != null and status != ''">AND c.status = #{status}</if>
+        </where>
+        ORDER BY c.id DESC
+    </select>
+
+    <select id="selectByPage" resultMap="complaintResultMap">
+        SELECT c.*, o.name AS owner_name
+        FROM complaint c LEFT JOIN owner o ON c.owner_id = o.id
+        <where>
+            <if test="ownerId != null">AND c.owner_id = #{ownerId}</if>
+            <if test="status != null and status != ''">AND c.status = #{status}</if>
+        </where>
+        ORDER BY c.id DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectCount" resultType="int">
+        SELECT COUNT(*) FROM complaint
+        <where>
+            <if test="ownerId != null">AND owner_id = #{ownerId}</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+        </where>
+    </select>
+
+    <select id="selectByOwnerId" resultMap="complaintResultMap">
+        SELECT c.*, o.name AS owner_name
+        FROM complaint c LEFT JOIN owner o ON c.owner_id = o.id
+        WHERE c.owner_id = #{ownerId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO complaint (owner_id, title, content, create_time, status)
+        VALUES (#{ownerId}, #{title}, #{content}, #{createTime}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE complaint
+        <set>
+            <if test="ownerId != null">owner_id = #{ownerId},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM complaint WHERE id = #{id}
+    </delete>
+</mapper>

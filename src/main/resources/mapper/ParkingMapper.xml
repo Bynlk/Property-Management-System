@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.property.mapper.ParkingMapper">
+
+    <resultMap id="parkingResultMap" type="Parking">
+        <id property="id" column="id"/>
+        <result property="spotNumber" column="spot_number"/>
+        <result property="licensePlate" column="license_plate"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="status" column="status"/>
+        <result property="ownerName" column="owner_name"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="parkingResultMap">
+        SELECT p.*, o.name AS owner_name
+        FROM parking p LEFT JOIN owner o ON p.owner_id = o.id
+        WHERE p.id = #{id}
+    </select>
+
+    <select id="selectByCondition" resultMap="parkingResultMap">
+        SELECT p.*, o.name AS owner_name
+        FROM parking p LEFT JOIN owner o ON p.owner_id = o.id
+        <where>
+            <if test="spotNumber != null and spotNumber != ''">
+                AND p.spot_number LIKE CONCAT('%', #{spotNumber}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND p.status = #{status}
+            </if>
+        </where>
+        ORDER BY p.id DESC
+    </select>
+
+    <select id="selectByPage" resultMap="parkingResultMap">
+        SELECT p.*, o.name AS owner_name
+        FROM parking p LEFT JOIN owner o ON p.owner_id = o.id
+        <where>
+            <if test="spotNumber != null and spotNumber != ''">
+                AND p.spot_number LIKE CONCAT('%', #{spotNumber}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND p.status = #{status}
+            </if>
+        </where>
+        ORDER BY p.id DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectCount" resultType="int">
+        SELECT COUNT(*) FROM parking
+        <where>
+            <if test="spotNumber != null and spotNumber != ''">
+                AND spot_number LIKE CONCAT('%', #{spotNumber}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectByOwnerId" resultMap="parkingResultMap">
+        SELECT p.*, o.name AS owner_name
+        FROM parking p LEFT JOIN owner o ON p.owner_id = o.id
+        WHERE p.owner_id = #{ownerId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO parking (spot_number, license_plate, owner_id, status)
+        VALUES (#{spotNumber}, #{licensePlate}, #{ownerId}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE parking
+        <set>
+            <if test="spotNumber != null">spot_number = #{spotNumber},</if>
+            <if test="licensePlate != null">license_plate = #{licensePlate},</if>
+            <if test="ownerId != null">owner_id = #{ownerId},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM parking WHERE id = #{id}
+    </delete>
+</mapper>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.property.mapper.RepairMapper">
+
+    <resultMap id="repairResultMap" type="Repair">
+        <id property="id" column="id"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="deviceName" column="device_name"/>
+        <result property="faultDescription" column="fault_description"/>
+        <result property="repairPerson" column="repair_person"/>
+        <result property="status" column="status"/>
+        <result property="ownerName" column="owner_name"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="repairResultMap">
+        SELECT r.*, o.name AS owner_name
+        FROM repair r LEFT JOIN owner o ON r.owner_id = o.id
+        WHERE r.id = #{id}
+    </select>
+
+    <select id="selectByCondition" resultMap="repairResultMap">
+        SELECT r.*, o.name AS owner_name
+        FROM repair r LEFT JOIN owner o ON r.owner_id = o.id
+        <where>
+            <if test="ownerId != null">AND r.owner_id = #{ownerId}</if>
+            <if test="status != null and status != ''">AND r.status = #{status}</if>
+        </where>
+        ORDER BY r.id DESC
+    </select>
+
+    <select id="selectByPage" resultMap="repairResultMap">
+        SELECT r.*, o.name AS owner_name
+        FROM repair r LEFT JOIN owner o ON r.owner_id = o.id
+        <where>
+            <if test="ownerId != null">AND r.owner_id = #{ownerId}</if>
+            <if test="status != null and status != ''">AND r.status = #{status}</if>
+        </where>
+        ORDER BY r.id DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectCount" resultType="int">
+        SELECT COUNT(*) FROM repair
+        <where>
+            <if test="ownerId != null">AND owner_id = #{ownerId}</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+        </where>
+    </select>
+
+    <select id="selectByOwnerId" resultMap="repairResultMap">
+        SELECT r.*, o.name AS owner_name
+        FROM repair r LEFT JOIN owner o ON r.owner_id = o.id
+        WHERE r.owner_id = #{ownerId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO repair (owner_id, device_name, fault_description, repair_person, status)
+        VALUES (#{ownerId}, #{deviceName}, #{faultDescription}, #{repairPerson}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE repair
+        <set>
+            <if test="ownerId != null">owner_id = #{ownerId},</if>
+            <if test="deviceName != null">device_name = #{deviceName},</if>
+            <if test="faultDescription != null">fault_description = #{faultDescription},</if>
+            <if test="repairPerson != null">repair_person = #{repairPerson},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM repair WHERE id = #{id}
+    </delete>
+</mapper>

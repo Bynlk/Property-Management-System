@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.property.mapper.HouseMapper">
+
+    <resultMap id="houseResultMap" type="House">
+        <id property="id" column="id"/>
+        <result property="building" column="building"/>
+        <result property="unit" column="unit"/>
+        <result property="roomNumber" column="room_number"/>
+        <result property="area" column="area"/>
+        <result property="houseType" column="house_type"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="status" column="status"/>
+        <result property="ownerName" column="owner_name"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="houseResultMap">
+        SELECT h.*, o.name AS owner_name
+        FROM house h LEFT JOIN owner o ON h.owner_id = o.id
+        WHERE h.id = #{id}
+    </select>
+
+    <select id="selectByCondition" resultMap="houseResultMap">
+        SELECT h.*, o.name AS owner_name
+        FROM house h LEFT JOIN owner o ON h.owner_id = o.id
+        <where>
+            <if test="building != null and building != ''">
+                AND h.building LIKE CONCAT('%', #{building}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND h.status = #{status}
+            </if>
+        </where>
+        ORDER BY h.id DESC
+    </select>
+
+    <select id="selectByPage" resultMap="houseResultMap">
+        SELECT h.*, o.name AS owner_name
+        FROM house h LEFT JOIN owner o ON h.owner_id = o.id
+        <where>
+            <if test="building != null and building != ''">
+                AND h.building LIKE CONCAT('%', #{building}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND h.status = #{status}
+            </if>
+        </where>
+        ORDER BY h.id DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectCount" resultType="int">
+        SELECT COUNT(*) FROM house
+        <where>
+            <if test="building != null and building != ''">
+                AND building LIKE CONCAT('%', #{building}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectByOwnerId" resultMap="houseResultMap">
+        SELECT h.*, o.name AS owner_name
+        FROM house h LEFT JOIN owner o ON h.owner_id = o.id
+        WHERE h.owner_id = #{ownerId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO house (building, unit, room_number, area, house_type, owner_id, status)
+        VALUES (#{building}, #{unit}, #{roomNumber}, #{area}, #{houseType}, #{ownerId}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE house
+        <set>
+            <if test="building != null">building = #{building},</if>
+            <if test="unit != null">unit = #{unit},</if>
+            <if test="roomNumber != null">room_number = #{roomNumber},</if>
+            <if test="area != null">area = #{area},</if>
+            <if test="houseType != null">house_type = #{houseType},</if>
+            <if test="ownerId != null">owner_id = #{ownerId},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM house WHERE id = #{id}
+    </delete>
+</mapper>
