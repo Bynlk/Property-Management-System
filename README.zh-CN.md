@@ -1,12 +1,10 @@
 <div align="center">
 
-# Property Management System
+# 小区物业管理系统
 
-**小区物业管理系统**
+**Property Management System**
 
-A full-stack property management platform built with **Spring Boot 3** and **React 19**, featuring a Liquid Glass UI design language.
-
-🌐 **English** · **[中文](README.zh-CN.md)**
+一个基于 **Spring Boot 3** 和 **React 19** 构建的全栈物业管理平台，采用 Liquid Glass 设计语言。
 
 [![Java](https://img.shields.io/badge/Java-17-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/17/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
@@ -19,81 +17,83 @@ A full-stack property management platform built with **Spring Boot 3** and **Rea
 
 <br />
 
-[Features](#features) · [Tech Stack](#tech-stack) · [Quick Start](#quick-start) · [Architecture](#architecture) · [API Reference](#api-reference) · [UI Design](#ui-design) · [中文文档](README.zh-CN.md)
+🌐 **[English](README.md)** · **中文**
+
+[功能特性](#功能特性) · [技术栈](#技术栈) · [快速开始](#快速开始) · [项目架构](#项目架构) · [接口文档](#接口文档) · [界面设计](#界面设计)
 
 </div>
 
 ---
 
-## Features
+## 功能特性
 
-| Module | Description |
-|:-------|:------------|
-| **Dashboard** | Real-time data overview, quick actions, and system information |
-| **Owner Management** | Full CRUD for owner profiles with search by name or phone |
-| **Employee Management** | Staff records, positions, and contact information |
-| **House Management** | Building / unit / room tracking with occupancy status (occupied / vacant / under renovation) |
-| **Fee Management** | Billing records for property, water, electricity, and gas fees — with payment status tracking |
-| **Parking Management** | Parking spot allocation, license plate binding, and availability status |
-| **Complaint Handling** | Ticket submission and tri-state workflow (pending → in progress → resolved) |
-| **Repair Tracking** | Device fault reporting and repair status lifecycle (pending → in progress → completed) |
-| **Duty Scheduling** | Employee shift planning across morning / afternoon / night shifts |
+| 模块 | 说明 |
+|:-----|:-----|
+| **仪表盘** | 实时数据概览、快捷操作和系统信息 |
+| **业主管理** | 业主信息的完整增删改查，支持按姓名或手机号搜索 |
+| **员工管理** | 员工档案、职位和联系方式管理 |
+| **房屋管理** | 楼栋/单元/房间跟踪，含入住状态（已入住/空置/装修中） |
+| **费用管理** | 物业费、水费、电费、燃气费的账单记录，支持缴费状态跟踪 |
+| **车位管理** | 车位分配、车牌绑定和可用状态管理 |
+| **投诉处理** | 投诉提交与三态工作流（待处理 → 处理中 → 已解决） |
+| **报修跟踪** | 设备故障上报与维修状态生命周期（待处理 → 处理中 → 已完成） |
+| **值班排班** | 员工早班/中班/晚班的排班计划 |
 
-## Tech Stack
+## 技术栈
 
 <table>
 <tr>
 <td valign="top" width="50%">
 
-**Backend**
+**后端**
 
-| Layer | Technology |
-|:------|:-----------|
-| Language | Java 17 |
-| Framework | Spring Boot 3.2.5 |
+| 层级 | 技术 |
+|:-----|:-----|
+| 编程语言 | Java 17 |
+| 框架 | Spring Boot 3.2.5 |
 | ORM | MyBatis 3.0.3 |
-| Database | MySQL 8.0 |
-| Connection Pool | Alibaba Druid 1.2.21 |
-| Auth | Spring Security + JWT (jjwt 0.12.5) |
-| Build | Maven 3.x |
+| 数据库 | MySQL 8.0 |
+| 连接池 | Alibaba Druid 1.2.21 |
+| 认证 | Spring Security + JWT (jjwt 0.12.5) |
+| 构建工具 | Maven 3.x |
 
 </td>
 <td valign="top" width="50%">
 
-**Frontend**
+**前端**
 
-| Layer | Technology |
-|:------|:-----------|
-| Language | TypeScript 6.0 |
-| Framework | React 19 |
-| Build Tool | Vite 8 |
-| Styling | Tailwind CSS 4 |
-| Routing | React Router 7 |
-| HTTP Client | Axios |
-| Icons | Lucide React |
+| 层级 | 技术 |
+|:-----|:-----|
+| 编程语言 | TypeScript 6.0 |
+| 框架 | React 19 |
+| 构建工具 | Vite 8 |
+| 样式 | Tailwind CSS 4 |
+| 路由 | React Router 7 |
+| HTTP 客户端 | Axios |
+| 图标 | Lucide React |
 
 </td>
 </tr>
 </table>
 
-## Quick Start
+## 快速开始
 
-### Prerequisites
+### 环境要求
 
 - **JDK 17+**
 - **Maven 3.x**
-- **MySQL 8.x** running on `localhost:3306`
+- **MySQL 8.x** 运行在 `localhost:3306`
 - **Node.js 18+**
 
-### 1. Initialize Database
+### 1. 初始化数据库
 
 ```bash
 mysql -u root -p < src/main/resources/property_management.sql
 ```
 
-### 2. Configure Database Connection
+### 2. 配置数据库连接
 
-Edit [`src/main/resources/application.yml`](src/main/resources/application.yml) and set your MySQL password:
+编辑 [`src/main/resources/application.yml`](src/main/resources/application.yml)，设置你的 MySQL 密码：
 
 ```yaml
 spring:
@@ -101,15 +101,15 @@ spring:
     password: your_password_here
 ```
 
-### 3. Start Backend
+### 3. 启动后端
 
 ```bash
 mvn spring-boot:run
 ```
 
-Backend starts at **http://localhost:8080**.
+后端启动地址：**http://localhost:8080**
 
-### 4. Start Frontend
+### 4. 启动前端
 
 ```bash
 cd frontend
@@ -117,74 +117,74 @@ npm install
 npm run dev
 ```
 
-Frontend starts at **http://localhost:3000** — API requests to `/api` are proxied to the backend in dev mode.
+前端启动地址：**http://localhost:3000** — 开发模式下 `/api` 请求会代理到后端。
 
-### 5. Login
+### 5. 登录
 
-| Field | Value |
-|:------|:------|
-| URL | http://localhost:3000 |
-| Username | `admin` |
-| Password | `admin123` |
+| 字段 | 值 |
+|:-----|:---|
+| 地址 | http://localhost:3000 |
+| 用户名 | `admin` |
+| 密码 | `admin123` |
 
-## Architecture
+## 项目架构
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        Frontend (React)                      │
+│                      前端 (React)                            │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────┐  │
 │  │  Layout   │  │  Pages   │  │ DataTable│  │ FormModal  │  │
-│  │ (Sidebar) │  │ (×10)    │  │          │  │            │  │
+│  │ (侧边栏)  │  │ (×10)    │  │          │  │            │  │
 │  └──────────┘  └──────────┘  └──────────┘  └────────────┘  │
 │        │              │                                      │
 │        └──────┬───────┘                                      │
-│          api.ts (Axios + CRUD factory)                       │
+│          api.ts (Axios + CRUD 工厂)                          │
 └───────────────┼──────────────────────────────────────────────┘
                 │  Authorization: Bearer <JWT>
                 ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    Backend (Spring Boot)                      │
+│                   后端 (Spring Boot)                          │
 │  ┌────────────┐   ┌────────────┐   ┌──────────────────────┐ │
 │  │ Controller  │──▶│  Service   │──▶│  Mapper (MyBatis XML)│ │
-│  │  (REST API) │   │ (Business) │   │       (SQL)          │ │
+│  │  (REST API) │   │ (业务逻辑)  │   │       (SQL)          │ │
 │  └────────────┘   └────────────┘   └──────────────────────┘ │
 │  ┌────────────────────────────────────────────────────────┐  │
-│  │  Security: JWT Filter → Spring Security → Controller   │  │
+│  │  安全: JWT Filter → Spring Security → Controller        │  │
 │  └────────────────────────────────────────────────────────┘  │
 └───────────────────────────┬─────────────────────────────────┘
                             │
                             ▼
                     ┌──────────────┐
                     │   MySQL 8.0  │
-                    │  (9 tables)  │
+                    │  (9 张表)     │
                     └──────────────┘
 ```
 
-### Project Structure
+### 项目目录结构
 
 ```
 ├── src/main/
 │   ├── java/com/property/
-│   │   ├── PropertyManagementApplication.java    # Entry point
-│   │   ├── controller/       # REST controllers (8 modules + Auth)
-│   │   ├── entity/           # Entity POJOs
-│   │   ├── mapper/           # MyBatis mapper interfaces
-│   │   ├── service/          # Business logic (interface + impl)
-│   │   └── security/         # JWT utils, auth filter, security config
+│   │   ├── PropertyManagementApplication.java    # 入口类
+│   │   ├── controller/       # REST 控制器 (8 个模块 + 认证)
+│   │   ├── entity/           # 实体类
+│   │   ├── mapper/           # MyBatis Mapper 接口
+│   │   ├── service/          # 业务逻辑 (接口 + 实现)
+│   │   └── security/         # JWT 工具、认证过滤器、安全配置
 │   └── resources/
-│       ├── application.yml                       # App configuration
-│       ├── property_management.sql               # Schema + seed data
-│       └── mapper/                               # MyBatis XML mappings
+│       ├── application.yml                       # 应用配置
+│       ├── property_management.sql               # 建表 + 种子数据
+│       └── mapper/                               # MyBatis XML 映射
 └── frontend/
     └── src/
-        ├── api.ts             # Axios instance + generic CRUD factory
-        ├── types.ts           # TypeScript interfaces
-        ├── index.css          # Liquid Glass theme & animations
-        ├── components/        # Reusable: Layout, DataTable, FormModal, ConfirmDialog
-        └── pages/             # Route pages: Login, Dashboard, 8 modules
+        ├── api.ts             # Axios 实例 + 通用 CRUD 工厂
+        ├── types.ts           # TypeScript 类型定义
+        ├── index.css          # Liquid Glass 主题与动画
+        ├── components/        # 可复用组件: Layout, DataTable, FormModal, ConfirmDialog
+        └── pages/             # 路由页面: 登录、仪表盘、8 个业务模块
 ```
 
-### Database Schema
+### 数据库表结构
 
 ```
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
@@ -213,37 +213,37 @@ Frontend starts at **http://localhost:3000** — API requests to `/api` are prox
 └──────────────┘     └──────────────┘       └────────────┘
 ```
 
-## API Reference
+## 接口文档
 
-All endpoints are prefixed with `/api`. Protected routes require the header:
+所有接口前缀为 `/api`。需要认证的路由需携带请求头：
 
 ```
 Authorization: Bearer <token>
 ```
 
-### Authentication
+### 认证接口
 
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `POST` | `/api/auth/login` | Login — returns JWT token + user info |
-| `GET` | `/api/auth/info` | Get current authenticated user |
+| 方法 | 接口 | 说明 |
+|:-----|:-----|:-----|
+| `POST` | `/api/auth/login` | 登录 — 返回 JWT 令牌和用户信息 |
+| `GET` | `/api/auth/info` | 获取当前登录用户信息 |
 
-### Business Modules
+### 业务模块接口
 
-> Modules: `owner` · `employee` · `house` · `fee` · `parking` · `complaint` · `repair` · `duty`
+> 模块：`owner` · `employee` · `house` · `fee` · `parking` · `complaint` · `repair` · `duty`
 
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `GET` | `/api/{module}/page?pageNum=&pageSize=` | Paginated list |
-| `GET` | `/api/{module}/get/{id}` | Get by ID |
-| `POST` | `/api/{module}/add` | Create record |
-| `POST` | `/api/{module}/update` | Update record |
-| `POST` | `/api/{module}/delete/{id}` | Delete record |
+| 方法 | 接口 | 说明 |
+|:-----|:-----|:-----|
+| `GET` | `/api/{module}/page?pageNum=&pageSize=` | 分页查询列表 |
+| `GET` | `/api/{module}/get/{id}` | 根据 ID 查询 |
+| `POST` | `/api/{module}/add` | 新增记录 |
+| `POST` | `/api/{module}/update` | 更新记录 |
+| `POST` | `/api/{module}/delete/{id}` | 删除记录 |
 
-### Response Format
+### 响应格式
 
 ```jsonc
-// Paginated response
+// 分页响应
 {
   "list": [...],
   "total": 42,
@@ -252,48 +252,48 @@ Authorization: Bearer <token>
   "totalPages": 5
 }
 
-// Mutation response
-{ "code": 0, "msg": "操作成功" }   // success
-{ "code": 1, "msg": "操作失败" }   // failure
+// 操作响应
+{ "code": 0, "msg": "操作成功" }   // 成功
+{ "code": 1, "msg": "操作失败" }   // 失败
 ```
 
-## UI Design
+## 界面设计
 
-The frontend uses a **dark theme** with **Liquid Glass** design language:
+前端采用 **暗色主题** 和 **Liquid Glass** 设计语言：
 
-- **Ambient Orb** — animated background lighting that shifts color subtly
-- **Glassmorphism** — frosted-glass icon containers with light refraction highlights
-- **Mouse-tracking Glow** — interactive hover effects on dashboard stat cards
-- **Staggered Animations** — smooth page-enter transitions with cascading reveals
-- **Noise Texture Overlay** — subtle grain layer for added depth and materiality
+- **环境光球** — 动态背景光效，颜色微妙变化
+- **毛玻璃效果** — 带有光线折射高光的磨砂玻璃图标容器
+- **鼠标追踪发光** — 仪表盘统计卡片的交互式悬停效果
+- **交错动画** — 平滑的页面进入过渡和级联显示效果
+- **噪点纹理叠加** — 细微的颗粒层，增加深度和质感
 
-## Environment Variables
+## 环境变量
 
-Before deploying to production, update these values in [`application.yml`](src/main/resources/application.yml):
+部署到生产环境前，请更新 [`application.yml`](src/main/resources/application.yml) 中的以下配置：
 
-| Key | Location | What to Change |
-|:----|:---------|:---------------|
-| `spring.datasource.password` | `application.yml` | MySQL password |
-| `jwt.secret` | `application.yml` | Base64-encoded JWT signing key |
-| `jwt.expiration` | `application.yml` | Token TTL (default: 24h) |
+| 配置项 | 位置 | 说明 |
+|:-------|:-----|:-----|
+| `spring.datasource.password` | `application.yml` | MySQL 密码 |
+| `jwt.secret` | `application.yml` | Base64 编码的 JWT 签名密钥 |
+| `jwt.expiration` | `application.yml` | 令牌有效期（默认：24 小时） |
 
-## Deployment
+## 部署
 
-### Backend
+### 后端
 
 ```bash
 mvn clean package
 java -jar target/property-management-2.0.0.jar
 ```
 
-### Frontend
+### 前端
 
 ```bash
 cd frontend
-npm run build   # outputs to dist/
+npm run build   # 输出到 dist/
 ```
 
-Serve `dist/` with Nginx or any static file server. Reverse-proxy `/api` to the backend at `:8080`.
+使用 Nginx 或任何静态文件服务器托管 `dist/` 目录。将 `/api` 反向代理到后端 `:8080`。
 
 ```nginx
 server {
@@ -310,24 +310,24 @@ server {
 }
 ```
 
-## Roadmap
+## 路线图
 
-- [ ] Unit tests (backend JUnit + frontend Vitest)
-- [ ] Global exception handler
-- [ ] Role-based access control (admin vs. user)
-- [ ] File upload (avatar, complaint photos)
-- [ ] Dashboard charts and statistics
-- [ ] Docker Compose deployment
-- [ ] i18n (Chinese / English)
+- [ ] 单元测试（后端 JUnit + 前端 Vitest）
+- [ ] 全局异常处理器
+- [ ] 基于角色的访问控制（管理员 vs 普通用户）
+- [ ] 文件上传（头像、投诉照片）
+- [ ] 仪表盘图表和统计
+- [ ] Docker Compose 部署
+- [x] 国际化（中文 / 英文）
 
-## License
+## 开源许可
 
-This project is licensed under the **MIT License**.
+本项目基于 **MIT 许可证** 开源。
 
 ---
 
 <div align="center">
 
-**Built with Spring Boot & React**
+**基于 Spring Boot & React 构建**
 
 </div>
