@@ -1,7 +1,7 @@
 export interface Owner {
   id: number
   name: string
-  gender: string
+  gender: '男' | '女' | ''
   phone: string
   idCard: string
   moveInDate: string
@@ -10,7 +10,7 @@ export interface Owner {
 export interface Employee {
   id: number
   name: string
-  gender: string
+  gender: '男' | '女' | ''
   phone: string
   position: string
   hireDate: string
@@ -24,7 +24,7 @@ export interface House {
   area: number
   houseType: string
   ownerId: number | null
-  status: string
+  status: '已入住' | '空置' | '装修中' | ''
   ownerName?: string
 }
 
@@ -32,10 +32,11 @@ export interface Fee {
   id: number
   ownerId: number
   houseId: number | null
-  feeType: string
+  feeType: '物业费' | '水费' | '电费' | '燃气费' | ''
   amount: number
   shouldPayDate: string
-  status: string
+  paidDate: string | null
+  status: '未缴' | '已缴' | ''
   ownerName?: string
   houseInfo?: string
 }
@@ -45,7 +46,7 @@ export interface Parking {
   spotNumber: string
   licensePlate: string | null
   ownerId: number | null
-  status: string
+  status: '使用中' | '空闲' | ''
   ownerName?: string
 }
 
@@ -55,7 +56,7 @@ export interface Complaint {
   title: string
   content: string
   createTime: string
-  status: string
+  status: '待处理' | '处理中' | '已处理' | ''
   ownerName?: string
 }
 
@@ -65,7 +66,7 @@ export interface Repair {
   deviceName: string
   faultDescription: string
   repairPerson: string | null
-  status: string
+  status: '待维修' | '维修中' | '已完成' | ''
   ownerName?: string
 }
 
@@ -73,7 +74,7 @@ export interface Duty {
   id: number
   employeeId: number
   dutyDate: string
-  shift: string
+  shift: '早班' | '中班' | '晚班' | ''
   employeeName?: string
 }
 
@@ -81,7 +82,7 @@ export interface User {
   id: number
   username: string
   realName: string
-  role: string
+  role: 'admin' | 'user'
 }
 
 export interface PageResult<T> {
@@ -92,8 +93,9 @@ export interface PageResult<T> {
   totalPages: number
 }
 
-export interface ApiResult {
+/** 统一 API 响应封装 */
+export interface ApiResult<T = unknown> {
   code: number
   msg: string
-  [key: string]: unknown
+  data: T
 }
