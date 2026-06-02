@@ -10,31 +10,36 @@
         <result property="dutyDate" column="duty_date"/>
         <result property="shift" column="shift"/>
         <result property="employeeName" column="employee_name"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
-    <select id="selectById" resultMap="dutyResultMap">
+    <sql id="selectColumns">
         SELECT d.*, e.name AS employee_name
         FROM duty d LEFT JOIN employee e ON d.employee_id = e.id
+    </sql>
+
+    <sql id="whereClause">
+        <where>
+            <if test="employeeId != null">AND d.employee_id = #{employeeId}</if>
+            <if test="shift != null and shift != ''">AND d.shift = #{shift}</if>
+        </where>
+    </sql>
+
+    <select id="selectById" resultMap="dutyResultMap">
+        <include refid="selectColumns"/>
         WHERE d.id = #{id}
     </select>
 
     <select id="selectByCondition" resultMap="dutyResultMap">
-        SELECT d.*, e.name AS employee_name
-        FROM duty d LEFT JOIN employee e ON d.employee_id = e.id
-        <where>
-            <if test="employeeId != null">AND d.employee_id = #{employeeId}</if>
-            <if test="shift != null and shift != ''">AND d.shift = #{shift}</if>
-        </where>
+        <include refid="selectColumns"/>
+        <include refid="whereClause"/>
         ORDER BY d.id DESC
     </select>
 
     <select id="selectByPage" resultMap="dutyResultMap">
-        SELECT d.*, e.name AS employee_name
-        FROM duty d LEFT JOIN employee e ON d.employee_id = e.id
-        <where>
-            <if test="employeeId != null">AND d.employee_id = #{employeeId}</if>
-            <if test="shift != null and shift != ''">AND d.shift = #{shift}</if>
-        </where>
+        <include refid="selectColumns"/>
+        <include refid="whereClause"/>
         ORDER BY d.id DESC
         LIMIT #{offset}, #{pageSize}
     </select>
@@ -47,9 +52,13 @@
         </where>
     </select>
 
+    <select id="countByEmployeeId" resultType="int">
+        SELECT COUNT(*) FROM duty WHERE employee_id = #{employeeId}
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO duty (employee_id, duty_date, shift)
-        VALUES (#{employeeId}, #{dutyDate}, #{shift})
+        INSERT INTO duty (employee_id, duty_date, shift, created_at, updated_at)
+        VALUES (#{employeeId}, #{dutyDate}, #{shift}, #{createdAt}, #{updatedAt})
     </insert>
 
     <update id="update">
@@ -58,6 +67,7 @@
             <if test="employeeId != null">employee_id = #{employeeId},</if>
             <if test="dutyDate != null">duty_date = #{dutyDate},</if>
             <if test="shift != null">shift = #{shift},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
         </set>
         WHERE id = #{id}
     </update>

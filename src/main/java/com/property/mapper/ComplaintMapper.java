@@ -14,6 +14,7 @@ public interface ComplaintMapper {
                                  @Param("offset") Integer offset, @Param("pageSize") Integer pageSize);
     int selectCount(@Param("ownerId") Integer ownerId, @Param("status") String status);
     List<Complaint> selectByOwnerId(@Param("ownerId") Integer ownerId);
+    int countByOwnerId(@Param("ownerId") Integer ownerId);
     int insert(Complaint complaint);
     int update(Complaint complaint);
     int deleteById(@Param("id") Integer id);

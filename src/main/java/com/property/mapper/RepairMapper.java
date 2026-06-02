@@ -14,6 +14,7 @@ public interface RepairMapper {
                               @Param("offset") Integer offset, @Param("pageSize") Integer pageSize);
     int selectCount(@Param("ownerId") Integer ownerId, @Param("status") String status);
     List<Repair> selectByOwnerId(@Param("ownerId") Integer ownerId);
+    int countByOwnerId(@Param("ownerId") Integer ownerId);
     int insert(Repair repair);
     int update(Repair repair);
     int deleteById(@Param("id") Integer id);

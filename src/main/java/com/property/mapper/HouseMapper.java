@@ -14,6 +14,7 @@ public interface HouseMapper {
                              @Param("offset") Integer offset, @Param("pageSize") Integer pageSize);
     int selectCount(@Param("building") String building, @Param("status") String status);
     List<House> selectByOwnerId(@Param("ownerId") Integer ownerId);
+    int countByOwnerId(@Param("ownerId") Integer ownerId);
     int insert(House house);
     int update(House house);
     int deleteById(@Param("id") Integer id);

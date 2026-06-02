@@ -14,6 +14,7 @@ public interface FeeMapper {
                            @Param("offset") Integer offset, @Param("pageSize") Integer pageSize);
     int selectCount(@Param("ownerId") Integer ownerId, @Param("feeType") String feeType, @Param("status") String status);
     List<Fee> selectByOwnerId(@Param("ownerId") Integer ownerId);
+    int countByOwnerId(@Param("ownerId") Integer ownerId);
     int insert(Fee fee);
     int update(Fee fee);
     int deleteById(@Param("id") Integer id);

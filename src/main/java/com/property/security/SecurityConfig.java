@@ -1,6 +1,7 @@
 package com.property.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,6 +26,9 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    @Value("${app.cors.allowed-origins:http://localhost:3000}")
+    private String allowedOrigins;
+
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
@@ -38,6 +42,13 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                // Swagger UI & OpenAPI 文档
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                // 写操作（新增/修改/删除）仅限 admin
+                .requestMatchers(HttpMethod.POST, "/*/delete/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/*/add/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/*/update/**").hasRole("ADMIN")
+                // 其他请求需要认证
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -48,6 +59,14 @@ public class SecurityConfig {
                     Map<String, Object> result = new HashMap<>();
                     result.put("code", 401);
                     result.put("msg", "未登录或Token已过期");
+                    response.getWriter().write(new ObjectMapper().writeValueAsString(result));
+                })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(403);
+                    response.setContentType("application/json;charset=UTF-8");
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("code", 403);
+                    result.put("msg", "权限不足，仅管理员可执行此操作");
                     response.getWriter().write(new ObjectMapper().writeValueAsString(result));
                 })
             );
@@ -63,10 +82,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedOriginPatterns(List.of(allowedOrigins.split(",")));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

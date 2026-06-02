@@ -13,6 +13,7 @@ public interface DutyMapper {
     List<Duty> selectByPage(@Param("employeeId") Integer employeeId, @Param("shift") String shift,
                             @Param("offset") Integer offset, @Param("pageSize") Integer pageSize);
     int selectCount(@Param("employeeId") Integer employeeId, @Param("shift") String shift);
+    int countByEmployeeId(@Param("employeeId") Integer employeeId);
     int insert(Duty duty);
     int update(Duty duty);
     int deleteById(@Param("id") Integer id);

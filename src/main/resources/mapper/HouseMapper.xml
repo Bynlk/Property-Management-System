@@ -14,64 +14,61 @@
         <result property="ownerId" column="owner_id"/>
         <result property="status" column="status"/>
         <result property="ownerName" column="owner_name"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
-    <select id="selectById" resultMap="houseResultMap">
+    <sql id="selectColumns">
         SELECT h.*, o.name AS owner_name
         FROM house h LEFT JOIN owner o ON h.owner_id = o.id
+    </sql>
+
+    <sql id="whereClause">
+        <where>
+            <if test="building != null and building != ''">
+                AND h.building LIKE CONCAT('%', #{building}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND h.status = #{status}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectById" resultMap="houseResultMap">
+        <include refid="selectColumns"/>
         WHERE h.id = #{id}
     </select>
 
     <select id="selectByCondition" resultMap="houseResultMap">
-        SELECT h.*, o.name AS owner_name
-        FROM house h LEFT JOIN owner o ON h.owner_id = o.id
-        <where>
-            <if test="building != null and building != ''">
-                AND h.building LIKE CONCAT('%', #{building}, '%')
-            </if>
-            <if test="status != null and status != ''">
-                AND h.status = #{status}
-            </if>
-        </where>
+        <include refid="selectColumns"/>
+        <include refid="whereClause"/>
         ORDER BY h.id DESC
     </select>
 
     <select id="selectByPage" resultMap="houseResultMap">
-        SELECT h.*, o.name AS owner_name
-        FROM house h LEFT JOIN owner o ON h.owner_id = o.id
-        <where>
-            <if test="building != null and building != ''">
-                AND h.building LIKE CONCAT('%', #{building}, '%')
-            </if>
-            <if test="status != null and status != ''">
-                AND h.status = #{status}
-            </if>
-        </where>
+        <include refid="selectColumns"/>
+        <include refid="whereClause"/>
         ORDER BY h.id DESC
         LIMIT #{offset}, #{pageSize}
     </select>
 
     <select id="selectCount" resultType="int">
-        SELECT COUNT(*) FROM house
-        <where>
-            <if test="building != null and building != ''">
-                AND building LIKE CONCAT('%', #{building}, '%')
-            </if>
-            <if test="status != null and status != ''">
-                AND status = #{status}
-            </if>
-        </where>
+        SELECT COUNT(*) FROM house h
+        <include refid="whereClause"/>
     </select>
 
     <select id="selectByOwnerId" resultMap="houseResultMap">
-        SELECT h.*, o.name AS owner_name
-        FROM house h LEFT JOIN owner o ON h.owner_id = o.id
+        <include refid="selectColumns"/>
         WHERE h.owner_id = #{ownerId}
     </select>
 
+    <select id="countByOwnerId" resultType="int">
+        SELECT COUNT(*) FROM house WHERE owner_id = #{ownerId}
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO house (building, unit, room_number, area, house_type, owner_id, status)
-        VALUES (#{building}, #{unit}, #{roomNumber}, #{area}, #{houseType}, #{ownerId}, #{status})
+        INSERT INTO house (building, unit, room_number, area, house_type, owner_id, status, created_at, updated_at)
+        VALUES (#{building}, #{unit}, #{roomNumber}, #{area}, #{houseType}, #{ownerId}, #{status}, #{createdAt}, #{updatedAt})
     </insert>
 
     <update id="update">
@@ -84,6 +81,7 @@
             <if test="houseType != null">house_type = #{houseType},</if>
             <if test="ownerId != null">owner_id = #{ownerId},</if>
             <if test="status != null">status = #{status},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
         </set>
         WHERE id = #{id}
     </update>

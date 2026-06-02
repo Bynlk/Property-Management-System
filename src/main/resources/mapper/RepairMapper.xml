@@ -12,31 +12,36 @@
         <result property="repairPerson" column="repair_person"/>
         <result property="status" column="status"/>
         <result property="ownerName" column="owner_name"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
-    <select id="selectById" resultMap="repairResultMap">
+    <sql id="selectColumns">
         SELECT r.*, o.name AS owner_name
         FROM repair r LEFT JOIN owner o ON r.owner_id = o.id
+    </sql>
+
+    <sql id="whereClause">
+        <where>
+            <if test="ownerId != null">AND r.owner_id = #{ownerId}</if>
+            <if test="status != null and status != ''">AND r.status = #{status}</if>
+        </where>
+    </sql>
+
+    <select id="selectById" resultMap="repairResultMap">
+        <include refid="selectColumns"/>
         WHERE r.id = #{id}
     </select>
 
     <select id="selectByCondition" resultMap="repairResultMap">
-        SELECT r.*, o.name AS owner_name
-        FROM repair r LEFT JOIN owner o ON r.owner_id = o.id
-        <where>
-            <if test="ownerId != null">AND r.owner_id = #{ownerId}</if>
-            <if test="status != null and status != ''">AND r.status = #{status}</if>
-        </where>
+        <include refid="selectColumns"/>
+        <include refid="whereClause"/>
         ORDER BY r.id DESC
     </select>
 
     <select id="selectByPage" resultMap="repairResultMap">
-        SELECT r.*, o.name AS owner_name
-        FROM repair r LEFT JOIN owner o ON r.owner_id = o.id
-        <where>
-            <if test="ownerId != null">AND r.owner_id = #{ownerId}</if>
-            <if test="status != null and status != ''">AND r.status = #{status}</if>
-        </where>
+        <include refid="selectColumns"/>
+        <include refid="whereClause"/>
         ORDER BY r.id DESC
         LIMIT #{offset}, #{pageSize}
     </select>
@@ -50,14 +55,17 @@
     </select>
 
     <select id="selectByOwnerId" resultMap="repairResultMap">
-        SELECT r.*, o.name AS owner_name
-        FROM repair r LEFT JOIN owner o ON r.owner_id = o.id
+        <include refid="selectColumns"/>
         WHERE r.owner_id = #{ownerId}
     </select>
 
+    <select id="countByOwnerId" resultType="int">
+        SELECT COUNT(*) FROM repair WHERE owner_id = #{ownerId}
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO repair (owner_id, device_name, fault_description, repair_person, status)
-        VALUES (#{ownerId}, #{deviceName}, #{faultDescription}, #{repairPerson}, #{status})
+        INSERT INTO repair (owner_id, device_name, fault_description, repair_person, status, created_at, updated_at)
+        VALUES (#{ownerId}, #{deviceName}, #{faultDescription}, #{repairPerson}, #{status}, #{createdAt}, #{updatedAt})
     </insert>
 
     <update id="update">
@@ -68,6 +76,7 @@
             <if test="faultDescription != null">fault_description = #{faultDescription},</if>
             <if test="repairPerson != null">repair_person = #{repairPerson},</if>
             <if test="status != null">status = #{status},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
         </set>
         WHERE id = #{id}
     </update>
