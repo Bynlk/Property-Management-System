@@ -1,5 +1,9 @@
 package com.property.service.impl;
 
+import com.property.common.BusinessException;
+import com.property.common.PageHelper;
+import com.property.common.PageResult;
+import com.property.common.StatusValidator;
 import com.property.entity.Fee;
 import com.property.mapper.FeeMapper;
 import com.property.service.FeeService;
@@ -7,10 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * 费用Service实现类
+ */
 @Service
 public class FeeServiceImpl implements FeeService {
 
@@ -28,19 +34,10 @@ public class FeeServiceImpl implements FeeService {
     }
 
     @Override
-    public Map<String, Object> getByPage(Integer ownerId, String feeType, String status, Integer pageNum, Integer pageSize) {
-        if (pageNum == null || pageNum < 1) pageNum = 1;
-        if (pageSize == null || pageSize < 1) pageSize = 10;
-        int offset = (pageNum - 1) * pageSize;
-        List<Fee> list = feeMapper.selectByPage(ownerId, feeType, status, offset, pageSize);
-        int total = feeMapper.selectCount(ownerId, feeType, status);
-        Map<String, Object> result = new HashMap<>();
-        result.put("list", list);
-        result.put("total", total);
-        result.put("pageNum", pageNum);
-        result.put("pageSize", pageSize);
-        result.put("totalPages", (int) Math.ceil((double) total / pageSize));
-        return result;
+    public PageResult<Fee> getByPage(Integer ownerId, String feeType, String status, Integer pageNum, Integer pageSize) {
+        return PageHelper.doPage(pageNum, pageSize,
+                params -> feeMapper.selectByPage(ownerId, feeType, status, params[0], params[1]),
+                () -> feeMapper.selectCount(ownerId, feeType, status));
     }
 
     @Override
@@ -57,12 +54,29 @@ public class FeeServiceImpl implements FeeService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int update(Fee fee) {
+        // 必须先查询现有记录，验证存在性和状态转换
+        Fee existing = feeMapper.selectById(fee.getId());
+        if (existing == null) {
+            throw new BusinessException("费用记录不存在: id=" + fee.getId());
+        }
+        // 验证状态转换合法性
+        if (fee.getStatus() != null) {
+            StatusValidator.validateFeeTransition(existing.getStatus(), fee.getStatus());
+            // 状态变为"已缴"时，自动设置缴费日期
+            if ("已缴".equals(fee.getStatus()) && !"已缴".equals(existing.getStatus())) {
+                fee.setPaidDate(new Date());
+            }
+        }
         return feeMapper.update(fee);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int delete(Integer id) {
+        Fee existing = feeMapper.selectById(id);
+        if (existing == null) {
+            throw new BusinessException("费用记录不存在: id=" + id);
+        }
         return feeMapper.deleteById(id);
     }
 }
