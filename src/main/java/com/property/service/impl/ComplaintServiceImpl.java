@@ -1,26 +1,46 @@
 package com.property.service.impl;
 
+import com.property.common.BaseService;
+import com.property.common.PageHelper;
+import com.property.common.PageResult;
+import com.property.common.StatusValidator;
 import com.property.entity.Complaint;
+import com.property.entity.StatusChangeLog;
+import com.property.enums.ComplaintStatus;
 import com.property.mapper.ComplaintMapper;
+import com.property.mapper.StatusChangeLogMapper;
 import com.property.service.ComplaintService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.HashMap;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * 投诉Service实现类
+ */
 @Service
-public class ComplaintServiceImpl implements ComplaintService {
+@RequiredArgsConstructor
+public class ComplaintServiceImpl extends BaseService<Complaint, ComplaintMapper> implements ComplaintService {
 
-    @Autowired
-    private ComplaintMapper complaintMapper;
+    private final ComplaintMapper complaintMapper;
+    private final StatusChangeLogMapper statusChangeLogMapper;
 
     @Override
-    public Complaint getById(Integer id) {
-        return complaintMapper.selectById(id);
+    protected ComplaintMapper getMapper() {
+        return complaintMapper;
+    }
+
+    @Override
+    protected String getEntityName() {
+        return "投诉";
+    }
+
+    @Override
+    public int count() {
+        return complaintMapper.countAll();
     }
 
     @Override
@@ -29,19 +49,10 @@ public class ComplaintServiceImpl implements ComplaintService {
     }
 
     @Override
-    public Map<String, Object> getByPage(Integer ownerId, String status, Integer pageNum, Integer pageSize) {
-        if (pageNum == null || pageNum < 1) pageNum = 1;
-        if (pageSize == null || pageSize < 1) pageSize = 10;
-        int offset = (pageNum - 1) * pageSize;
-        List<Complaint> list = complaintMapper.selectByPage(ownerId, status, offset, pageSize);
-        int total = complaintMapper.selectCount(ownerId, status);
-        Map<String, Object> result = new HashMap<>();
-        result.put("list", list);
-        result.put("total", total);
-        result.put("pageNum", pageNum);
-        result.put("pageSize", pageSize);
-        result.put("totalPages", (int) Math.ceil((double) total / pageSize));
-        return result;
+    public PageResult<Complaint> getByPage(Integer ownerId, String status, Integer pageNum, Integer pageSize) {
+        return PageHelper.doPage(pageNum, pageSize,
+                params -> complaintMapper.selectByPage(ownerId, status, params[0], params[1]),
+                () -> complaintMapper.selectCount(ownerId, status));
     }
 
     @Override
@@ -52,21 +63,35 @@ public class ComplaintServiceImpl implements ComplaintService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int add(Complaint complaint) {
-        if (complaint.getCreateTime() == null) {
-            complaint.setCreateTime(new Date());
-        }
         return complaintMapper.insert(complaint);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int update(Complaint complaint) {
+        Complaint existing = findExistingOrThrow(complaint.getId());
+        // 验证状态转换合法性
+        if (complaint.getStatus() != null) {
+            StatusValidator.validateComplaintTransition(existing.getStatus(), complaint.getStatus());
+            // 状态变为"已处理"时自动设置解决时间
+            if (complaint.getStatus() == ComplaintStatus.RESOLVED && existing.getStatus() != ComplaintStatus.RESOLVED) {
+                complaint.setResolvedAt(LocalDateTime.now());
+            }
+            // 写入审计日志
+            String currentUser = "unknown";
+            var auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated()) {
+                currentUser = (String) auth.getPrincipal();
+            }
+            statusChangeLogMapper.insert(StatusChangeLog.builder()
+                    .entityType("complaint")
+                    .entityId(complaint.getId())
+                    .oldStatus(existing.getStatus().getValue())
+                    .newStatus(complaint.getStatus().getValue())
+                    .changedBy(currentUser)
+                    .changedAt(LocalDateTime.now())
+                    .build());
+        }
         return complaintMapper.update(complaint);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
-        return complaintMapper.deleteById(id);
     }
 }

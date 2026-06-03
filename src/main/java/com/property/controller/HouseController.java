@@ -1,79 +1,96 @@
 package com.property.controller;
 
+import com.property.common.BaseCrudController;
+import com.property.common.PageResult;
+import com.property.common.Result;
+import com.property.dto.HouseCreateRequest;
+import com.property.dto.HouseUpdateRequest;
 import com.property.entity.House;
+import com.property.enums.HouseStatus;
 import com.property.service.HouseService;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * 房屋Controller
+ */
+@Slf4j
+@RequiredArgsConstructor
+@Tag(name = "房屋管理", description = "房屋信息的增删改查")
 @RestController
 @RequestMapping("/api/house")
-public class HouseController {
+public class HouseController extends BaseCrudController<House, HouseCreateRequest, HouseUpdateRequest, HouseService> {
 
-    @Autowired
-    private HouseService houseService;
+    private final HouseService houseService;
 
+    @Override
+    protected HouseService getService() { return houseService; }
+
+    @Override
+    protected String getEntityName() { return "房屋"; }
+
+    @Override
+    protected House toEntity(HouseCreateRequest req) {
+        return House.builder()
+                .building(req.getBuilding())
+                .unit(req.getUnit())
+                .roomNumber(req.getRoomNumber())
+                .area(req.getArea())
+                .houseType(req.getHouseType())
+                .ownerId(req.getOwnerId())
+                .status(req.getStatus() != null ? HouseStatus.valueOf(req.getStatus()) : null)
+                .build();
+    }
+
+    @Override
+    protected House toEntity(HouseUpdateRequest req, Integer id) {
+        return House.builder()
+                .id(id)
+                .building(req.getBuilding())
+                .unit(req.getUnit())
+                .roomNumber(req.getRoomNumber())
+                .area(req.getArea())
+                .houseType(req.getHouseType())
+                .ownerId(req.getOwnerId())
+                .status(req.getStatus() != null ? HouseStatus.valueOf(req.getStatus()) : null)
+                .build();
+    }
+
+    @Override
+    protected PageResult<House> doPage(Object... params) {
+        return houseService.getByPage("", "", (Integer) params[0], (Integer) params[1]);
+    }
+
+    @Override
+    protected int doAdd(House entity) { return houseService.add(entity); }
+
+    @Override
+    protected int doUpdate(House entity) { return houseService.update(entity); }
+
+    @Override
+    protected int doDelete(Integer id) { return houseService.delete(id); }
+
+    @Override
+    protected House doGetById(Integer id) { return houseService.getById(id); }
+
+    @Operation(summary = "分页查询房屋", description = "支持按楼栋号模糊搜索、按入住状态筛选")
     @GetMapping("/page")
-    public Map<String, Object> page(
+    public Result<PageResult<House>> page(
             @RequestParam(defaultValue = "") String building,
             @RequestParam(defaultValue = "") String status,
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        return houseService.getByPage(building, status, pageNum, pageSize);
+        return Result.success(houseService.getByPage(building, status, pageNum, pageSize));
     }
 
-    @GetMapping("/get/{id}")
-    public House getById(@PathVariable Integer id) {
-        return houseService.getById(id);
-    }
-
+    @Operation(summary = "根据业主ID查询房屋", description = "查询指定业主名下的所有房屋")
     @GetMapping("/owner/{ownerId}")
-    public List<House> getByOwnerId(@PathVariable Integer ownerId) {
-        return houseService.getByOwnerId(ownerId);
-    }
-
-    @PostMapping("/add")
-    public Map<String, Object> add(@RequestBody House house) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            int rows = houseService.add(house);
-            result.put("code", rows > 0 ? 0 : 1);
-            result.put("msg", rows > 0 ? "新增成功" : "新增失败");
-        } catch (Exception e) {
-            result.put("code", 1);
-            result.put("msg", "操作异常，请联系管理员");
-        }
-        return result;
-    }
-
-    @PostMapping("/update")
-    public Map<String, Object> update(@RequestBody House house) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            int rows = houseService.update(house);
-            result.put("code", rows > 0 ? 0 : 1);
-            result.put("msg", rows > 0 ? "修改成功" : "修改失败");
-        } catch (Exception e) {
-            result.put("code", 1);
-            result.put("msg", "操作异常，请联系管理员");
-        }
-        return result;
-    }
-
-    @PostMapping("/delete/{id}")
-    public Map<String, Object> delete(@PathVariable Integer id) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            int rows = houseService.delete(id);
-            result.put("code", rows > 0 ? 0 : 1);
-            result.put("msg", rows > 0 ? "删除成功" : "删除失败");
-        } catch (Exception e) {
-            result.put("code", 1);
-            result.put("msg", "操作异常，请联系管理员");
-        }
-        return result;
+    public Result<List<House>> getByOwnerId(@PathVariable Integer ownerId) {
+        return Result.success(houseService.getByOwnerId(ownerId));
     }
 }

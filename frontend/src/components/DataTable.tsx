@@ -1,18 +1,16 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { useRef, useCallback } from 'react'
 
-interface Column {
+interface Column<T extends { id: number } = { id: number } & Record<string, unknown>> {
   key: string
   title: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  render?: (item: any) => React.ReactNode
+  render?: (item: T) => React.ReactNode
   width?: string
 }
 
-interface Props {
-  columns: Column[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any[]
+interface Props<T extends { id: number } = { id: number } & Record<string, unknown>> {
+  columns: Column<T>[]
+  data: T[]
   total: number
   pageNum: number
   pageSize: number
@@ -20,7 +18,8 @@ interface Props {
   loading?: boolean
 }
 
-function SkeletonRows({ columns, count = 5 }: { columns: Column[]; count?: number }) {
+function SkeletonRows({ columns, count = 5 }: { columns: { key: string }[]; count?: number }) {
+  const widths = ['32px', '64px', '70%', '55%', '60%', '45%', '50%', '65%']
   return (
     <>
       {Array.from({ length: count }).map((_, row) => (
@@ -30,7 +29,7 @@ function SkeletonRows({ columns, count = 5 }: { columns: Column[]; count?: numbe
               <div
                 className="skeleton h-4"
                 style={{
-                  width: colIdx === 0 ? '32px' : colIdx === columns.length - 1 ? '64px' : `${50 + Math.random() * 40}%`,
+                  width: colIdx === 0 ? '32px' : colIdx === columns.length - 1 ? '64px' : widths[colIdx % widths.length],
                   animationDelay: `${row * 0.1 + colIdx * 0.05}s`,
                 }}
               />
@@ -42,9 +41,9 @@ function SkeletonRows({ columns, count = 5 }: { columns: Column[]; count?: numbe
   )
 }
 
-export default function DataTable({
+export default function DataTable<T extends { id: number }>({
   columns, data, total, pageNum, pageSize, onPageChange, loading,
-}: Props) {
+}: Props<T>) {
   const totalPages = Math.ceil(total / pageSize)
   const tableRef = useRef<HTMLDivElement>(null)
 
@@ -119,7 +118,7 @@ export default function DataTable({
                 >
                   {columns.map((col) => (
                     <td key={col.key} className="px-4 py-3.5">
-                      {col.render ? col.render(item) : (item[col.key] ?? '-')}
+                      {col.render ? col.render(item) : (String((item as Record<string, unknown>)[col.key] ?? '-'))}
                     </td>
                   ))}
                 </tr>
@@ -141,6 +140,7 @@ export default function DataTable({
               disabled={pageNum <= 1}
               className="p-1.5 rounded-lg hover:bg-white/[0.06] text-text-secondary disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
               title="首页"
+              aria-label="首页"
             >
               <ChevronsLeft size={14} />
             </button>
@@ -149,6 +149,7 @@ export default function DataTable({
               disabled={pageNum <= 1}
               className="p-1.5 rounded-lg hover:bg-white/[0.06] text-text-secondary disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
               title="上一页"
+              aria-label="上一页"
             >
               <ChevronLeft size={14} />
             </button>
@@ -167,6 +168,8 @@ export default function DataTable({
                       ? 'bg-white/10 text-white border border-white/15'
                       : 'text-text-secondary hover:bg-white/6 hover:text-text-primary'
                   }`}
+                  aria-label={`第${page}页`}
+                  aria-current={page === pageNum ? 'page' : undefined}
                 >
                   {page}
                 </button>
@@ -178,6 +181,7 @@ export default function DataTable({
               disabled={pageNum >= totalPages}
               className="p-1.5 rounded-lg hover:bg-white/[0.06] text-text-secondary disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
               title="下一页"
+              aria-label="下一页"
             >
               <ChevronRight size={14} />
             </button>
@@ -186,6 +190,7 @@ export default function DataTable({
               disabled={pageNum >= totalPages}
               className="p-1.5 rounded-lg hover:bg-white/[0.06] text-text-secondary disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
               title="末页"
+              aria-label="末页"
             >
               <ChevronsRight size={14} />
             </button>

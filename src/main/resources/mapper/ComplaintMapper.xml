@@ -9,8 +9,8 @@
         <result property="ownerId" column="owner_id"/>
         <result property="title" column="title"/>
         <result property="content" column="content"/>
-        <result property="createTime" column="create_time"/>
         <result property="status" column="status"/>
+        <result property="resolvedAt" column="resolved_at"/>
         <result property="ownerName" column="owner_name"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
@@ -18,7 +18,8 @@
 
     <!-- 公共查询字段 + JOIN -->
     <sql id="selectColumns">
-        SELECT c.*, o.name AS owner_name
+        SELECT c.id, c.owner_id, c.title, c.content, c.status, c.resolved_at,
+               c.created_at, c.updated_at, o.name AS owner_name
         FROM complaint c LEFT JOIN owner o ON c.owner_id = o.id
     </sql>
 
@@ -35,6 +36,11 @@
         WHERE c.id = #{id}
     </select>
 
+    <select id="selectAll" resultMap="complaintResultMap">
+        <include refid="selectColumns"/>
+        ORDER BY c.id DESC
+    </select>
+
     <select id="selectByCondition" resultMap="complaintResultMap">
         <include refid="selectColumns"/>
         <include refid="whereClause"/>
@@ -49,11 +55,13 @@
     </select>
 
     <select id="selectCount" resultType="int">
+        SELECT COUNT(*) FROM complaint c
+        <include refid="whereClause"/>
+    </select>
+
+    <!-- 查询全部记录数（无条件） -->
+    <select id="countAll" resultType="int">
         SELECT COUNT(*) FROM complaint
-        <where>
-            <if test="ownerId != null">AND owner_id = #{ownerId}</if>
-            <if test="status != null and status != ''">AND status = #{status}</if>
-        </where>
     </select>
 
     <select id="selectByOwnerId" resultMap="complaintResultMap">
@@ -66,8 +74,8 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO complaint (owner_id, title, content, create_time, status, created_at, updated_at)
-        VALUES (#{ownerId}, #{title}, #{content}, #{createTime}, #{status}, #{createdAt}, #{updatedAt})
+        INSERT INTO complaint (owner_id, title, content, status, created_at, updated_at)
+        VALUES (#{ownerId}, #{title}, #{content}, #{status}, #{createdAt}, #{updatedAt})
     </insert>
 
     <update id="update">
@@ -77,6 +85,7 @@
             <if test="title != null">title = #{title},</if>
             <if test="content != null">content = #{content},</if>
             <if test="status != null">status = #{status},</if>
+            <if test="resolvedAt != null">resolved_at = #{resolvedAt},</if>
             <if test="updatedAt != null">updated_at = #{updatedAt},</if>
         </set>
         WHERE id = #{id}

@@ -1,25 +1,35 @@
 package com.property.service.impl;
 
+import com.property.common.BaseService;
+import com.property.common.PageHelper;
+import com.property.common.PageResult;
+import com.property.common.StatusValidator;
 import com.property.entity.Parking;
 import com.property.mapper.ParkingMapper;
 import com.property.service.ParkingService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * 停车位Service实现类
+ */
 @Service
-public class ParkingServiceImpl implements ParkingService {
+@RequiredArgsConstructor
+public class ParkingServiceImpl extends BaseService<Parking, ParkingMapper> implements ParkingService {
 
-    @Autowired
-    private ParkingMapper parkingMapper;
+    private final ParkingMapper parkingMapper;
 
     @Override
-    public Parking getById(Integer id) {
-        return parkingMapper.selectById(id);
+    protected ParkingMapper getMapper() {
+        return parkingMapper;
+    }
+
+    @Override
+    protected String getEntityName() {
+        return "停车位";
     }
 
     @Override
@@ -28,19 +38,10 @@ public class ParkingServiceImpl implements ParkingService {
     }
 
     @Override
-    public Map<String, Object> getByPage(String spotNumber, String status, Integer pageNum, Integer pageSize) {
-        if (pageNum == null || pageNum < 1) pageNum = 1;
-        if (pageSize == null || pageSize < 1) pageSize = 10;
-        int offset = (pageNum - 1) * pageSize;
-        List<Parking> list = parkingMapper.selectByPage(spotNumber, status, offset, pageSize);
-        int total = parkingMapper.selectCount(spotNumber, status);
-        Map<String, Object> result = new HashMap<>();
-        result.put("list", list);
-        result.put("total", total);
-        result.put("pageNum", pageNum);
-        result.put("pageSize", pageSize);
-        result.put("totalPages", (int) Math.ceil((double) total / pageSize));
-        return result;
+    public PageResult<Parking> getByPage(String spotNumber, String status, Integer pageNum, Integer pageSize) {
+        return PageHelper.doPage(pageNum, pageSize,
+                params -> parkingMapper.selectByPage(spotNumber, status, params[0], params[1]),
+                () -> parkingMapper.selectCount(spotNumber, status));
     }
 
     @Override
@@ -57,12 +58,11 @@ public class ParkingServiceImpl implements ParkingService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int update(Parking parking) {
+        Parking existing = findExistingOrThrow(parking.getId());
+        // 验证停车位状态转换合法性
+        if (parking.getStatus() != null) {
+            StatusValidator.validateParkingTransition(existing.getStatus(), parking.getStatus());
+        }
         return parkingMapper.update(parking);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
-        return parkingMapper.deleteById(id);
     }
 }

@@ -19,59 +19,60 @@
         <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
-    <select id="selectById" resultMap="feeResultMap">
-        SELECT f.*, o.name AS owner_name,
+    <!-- 公共查询字段 + JOIN -->
+    <sql id="selectColumns">
+        SELECT f.id, f.owner_id, f.house_id, f.fee_type, f.amount, f.should_pay_date, f.paid_date,
+               f.status, f.created_at, f.updated_at, o.name AS owner_name,
                CONCAT(h.building, '-', h.unit, '-', h.room_number) AS house_info
         FROM fee f
         LEFT JOIN owner o ON f.owner_id = o.id
         LEFT JOIN house h ON f.house_id = h.id
-        WHERE f.id = #{id}
-    </select>
+    </sql>
 
-    <select id="selectByCondition" resultMap="feeResultMap">
-        SELECT f.*, o.name AS owner_name,
-               CONCAT(h.building, '-', h.unit, '-', h.room_number) AS house_info
-        FROM fee f
-        LEFT JOIN owner o ON f.owner_id = o.id
-        LEFT JOIN house h ON f.house_id = h.id
+    <!-- 公共 WHERE 条件（带表别名） -->
+    <sql id="whereClause">
         <where>
             <if test="ownerId != null">AND f.owner_id = #{ownerId}</if>
             <if test="feeType != null and feeType != ''">AND f.fee_type = #{feeType}</if>
             <if test="status != null and status != ''">AND f.status = #{status}</if>
         </where>
+    </sql>
+
+    <select id="selectById" resultMap="feeResultMap">
+        <include refid="selectColumns"/>
+        WHERE f.id = #{id}
+    </select>
+
+    <select id="selectAll" resultMap="feeResultMap">
+        <include refid="selectColumns"/>
+        ORDER BY f.id DESC
+    </select>
+
+    <select id="selectByCondition" resultMap="feeResultMap">
+        <include refid="selectColumns"/>
+        <include refid="whereClause"/>
         ORDER BY f.id DESC
     </select>
 
     <select id="selectByPage" resultMap="feeResultMap">
-        SELECT f.*, o.name AS owner_name,
-               CONCAT(h.building, '-', h.unit, '-', h.room_number) AS house_info
-        FROM fee f
-        LEFT JOIN owner o ON f.owner_id = o.id
-        LEFT JOIN house h ON f.house_id = h.id
-        <where>
-            <if test="ownerId != null">AND f.owner_id = #{ownerId}</if>
-            <if test="feeType != null and feeType != ''">AND f.fee_type = #{feeType}</if>
-            <if test="status != null and status != ''">AND f.status = #{status}</if>
-        </where>
+        <include refid="selectColumns"/>
+        <include refid="whereClause"/>
         ORDER BY f.id DESC
         LIMIT #{offset}, #{pageSize}
     </select>
 
     <select id="selectCount" resultType="int">
+        SELECT COUNT(*) FROM fee f
+        <include refid="whereClause"/>
+    </select>
+
+    <!-- 查询全部记录数（无条件） -->
+    <select id="countAll" resultType="int">
         SELECT COUNT(*) FROM fee
-        <where>
-            <if test="ownerId != null">AND owner_id = #{ownerId}</if>
-            <if test="feeType != null and feeType != ''">AND fee_type = #{feeType}</if>
-            <if test="status != null and status != ''">AND status = #{status}</if>
-        </where>
     </select>
 
     <select id="selectByOwnerId" resultMap="feeResultMap">
-        SELECT f.*, o.name AS owner_name,
-               CONCAT(h.building, '-', h.unit, '-', h.room_number) AS house_info
-        FROM fee f
-        LEFT JOIN owner o ON f.owner_id = o.id
-        LEFT JOIN house h ON f.house_id = h.id
+        <include refid="selectColumns"/>
         WHERE f.owner_id = #{ownerId}
     </select>
 

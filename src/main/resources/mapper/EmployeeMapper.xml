@@ -11,14 +11,11 @@
         <result property="phone" column="phone"/>
         <result property="position" column="position"/>
         <result property="hireDate" column="hire_date"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
-    <select id="selectById" resultMap="employeeResultMap">
-        SELECT * FROM employee WHERE id = #{id}
-    </select>
-
-    <select id="selectByCondition" resultMap="employeeResultMap">
-        SELECT * FROM employee
+    <sql id="whereClause">
         <where>
             <if test="name != null and name != ''">
                 AND name LIKE CONCAT('%', #{name}, '%')
@@ -27,38 +24,37 @@
                 AND position LIKE CONCAT('%', #{position}, '%')
             </if>
         </where>
+    </sql>
+
+    <select id="selectById" resultMap="employeeResultMap">
+        SELECT id, name, gender, phone, position, hire_date, created_at, updated_at FROM employee WHERE id = #{id}
+    </select>
+
+    <select id="selectAll" resultMap="employeeResultMap">
+        SELECT id, name, gender, phone, position, hire_date, created_at, updated_at FROM employee ORDER BY id DESC
+    </select>
+
+    <select id="selectByCondition" resultMap="employeeResultMap">
+        SELECT id, name, gender, phone, position, hire_date, created_at, updated_at FROM employee
+        <include refid="whereClause"/>
         ORDER BY id DESC
     </select>
 
     <select id="selectByPage" resultMap="employeeResultMap">
-        SELECT * FROM employee
-        <where>
-            <if test="name != null and name != ''">
-                AND name LIKE CONCAT('%', #{name}, '%')
-            </if>
-            <if test="position != null and position != ''">
-                AND position LIKE CONCAT('%', #{position}, '%')
-            </if>
-        </where>
+        SELECT id, name, gender, phone, position, hire_date, created_at, updated_at FROM employee
+        <include refid="whereClause"/>
         ORDER BY id DESC
         LIMIT #{offset}, #{pageSize}
     </select>
 
     <select id="selectCount" resultType="int">
         SELECT COUNT(*) FROM employee
-        <where>
-            <if test="name != null and name != ''">
-                AND name LIKE CONCAT('%', #{name}, '%')
-            </if>
-            <if test="position != null and position != ''">
-                AND position LIKE CONCAT('%', #{position}, '%')
-            </if>
-        </where>
+        <include refid="whereClause"/>
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO employee (name, gender, phone, position, hire_date)
-        VALUES (#{name}, #{gender}, #{phone}, #{position}, #{hireDate})
+        INSERT INTO employee (name, gender, phone, position, hire_date, created_at, updated_at)
+        VALUES (#{name}, #{gender}, #{phone}, #{position}, #{hireDate}, #{createdAt}, #{updatedAt})
     </insert>
 
     <update id="update">
@@ -69,6 +65,7 @@
             <if test="phone != null">phone = #{phone},</if>
             <if test="position != null">position = #{position},</if>
             <if test="hireDate != null">hire_date = #{hireDate},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
         </set>
         WHERE id = #{id}
     </update>

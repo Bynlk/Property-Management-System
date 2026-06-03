@@ -1,39 +1,51 @@
 package com.property.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * 员工实体类
  */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Employee implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private Integer id;
+
+    @NotBlank(message = "姓名不能为空")
+    @Size(max = 50, message = "姓名长度不能超过50")
     private String name;
+
+    @Pattern(regexp = "^$|^男$|^女$", message = "性别只能为男或女")
     private String gender;
+
+    @Pattern(regexp = "^$|^1[3-9]\\d{9}$", message = "手机号格式不正确")
     private String phone;
+
+    @Size(max = 50, message = "岗位长度不能超过50")
     private String position;
+
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Shanghai")
-    private Date hireDate;
+    private LocalDate hireDate;
 
-    // Getters and Setters
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
+    private LocalDateTime createdAt;
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public String getGender() { return gender; }
-    public void setGender(String gender) { this.gender = gender; }
-
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-
-    public String getPosition() { return position; }
-    public void setPosition(String position) { this.position = position; }
-
-    public Date getHireDate() { return hireDate; }
-    public void setHireDate(Date hireDate) { this.hireDate = hireDate; }
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
+    private LocalDateTime updatedAt;
 
     @Override
     public String toString() {

@@ -1,5 +1,6 @@
 package com.property.mapper;
 
+import com.property.common.BaseMapper;
 import com.property.entity.Owner;
 import org.apache.ibatis.annotations.Param;
 import java.util.List;
@@ -7,16 +8,10 @@ import java.util.List;
 /**
  * 业主Mapper接口
  */
-public interface OwnerMapper {
-
-    /** 根据ID查询业主 */
-    Owner selectById(@Param("id") Integer id);
+public interface OwnerMapper extends BaseMapper<Owner> {
 
     /** 模糊查询（按姓名和手机号） */
     List<Owner> selectByCondition(@Param("name") String name, @Param("phone") String phone);
-
-    /** 查询所有业主 */
-    List<Owner> selectAll();
 
     /** 分页查询 */
     List<Owner> selectByPage(@Param("name") String name, @Param("phone") String phone,
@@ -25,12 +20,6 @@ public interface OwnerMapper {
     /** 查询总记录数 */
     int selectCount(@Param("name") String name, @Param("phone") String phone);
 
-    /** 新增业主 */
-    int insert(Owner owner);
-
-    /** 修改业主 */
-    int update(Owner owner);
-
-    /** 删除业主 */
-    int deleteById(@Param("id") Integer id);
+    /** 查询全部记录数（无条件） */
+    int countAll();
 }

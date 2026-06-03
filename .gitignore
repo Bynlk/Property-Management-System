@@ -28,3 +28,17 @@ Thumbs.db
 # Env
 .env
 *.env.local
+
+# Lock files (keep package-lock.json, ignore others)
+yarn.lock
+pnpm-lock.yaml
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Logs
+logs/
+
+# Claude Code
+.claude/

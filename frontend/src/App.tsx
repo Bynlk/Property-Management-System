@@ -1,8 +1,8 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Layout from './components/Layout'
-import Toast from './components/Toast'
+import { ToastProvider } from './components/Toast'
 import ErrorBoundary from './components/ErrorBoundary'
 import LoginPage from './pages/LoginPage'
 
@@ -46,7 +46,7 @@ function NotFound() {
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
       <div className="text-6xl font-bold text-white/10">404</div>
       <p className="text-text-secondary">页面不存在</p>
-      <a href="/" className="btn-primary px-5 py-2 text-sm">返回首页</a>
+      <Link to="/" className="btn-primary px-5 py-2 text-sm">返回首页</Link>
     </div>
   )
 }
@@ -56,7 +56,7 @@ export default function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
-          <Toast />
+          <ToastProvider>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route
@@ -79,6 +79,7 @@ export default function App() {
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
+          </ToastProvider>
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>

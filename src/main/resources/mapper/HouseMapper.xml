@@ -19,7 +19,8 @@
     </resultMap>
 
     <sql id="selectColumns">
-        SELECT h.*, o.name AS owner_name
+        SELECT h.id, h.building, h.unit, h.room_number, h.area, h.house_type, h.owner_id, h.status,
+               h.created_at, h.updated_at, o.name AS owner_name
         FROM house h LEFT JOIN owner o ON h.owner_id = o.id
     </sql>
 
@@ -39,6 +40,11 @@
         WHERE h.id = #{id}
     </select>
 
+    <select id="selectAll" resultMap="houseResultMap">
+        <include refid="selectColumns"/>
+        ORDER BY h.id DESC
+    </select>
+
     <select id="selectByCondition" resultMap="houseResultMap">
         <include refid="selectColumns"/>
         <include refid="whereClause"/>
@@ -55,6 +61,11 @@
     <select id="selectCount" resultType="int">
         SELECT COUNT(*) FROM house h
         <include refid="whereClause"/>
+    </select>
+
+    <!-- 查询全部记录数（无条件） -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM house
     </select>
 
     <select id="selectByOwnerId" resultMap="houseResultMap">

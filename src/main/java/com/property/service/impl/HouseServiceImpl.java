@@ -1,25 +1,40 @@
 package com.property.service.impl;
 
+import com.property.common.BaseService;
+import com.property.common.PageHelper;
+import com.property.common.PageResult;
+import com.property.common.StatusValidator;
 import com.property.entity.House;
 import com.property.mapper.HouseMapper;
 import com.property.service.HouseService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * 房屋Service实现类
+ */
 @Service
-public class HouseServiceImpl implements HouseService {
+@RequiredArgsConstructor
+public class HouseServiceImpl extends BaseService<House, HouseMapper> implements HouseService {
 
-    @Autowired
-    private HouseMapper houseMapper;
+    private final HouseMapper houseMapper;
 
     @Override
-    public House getById(Integer id) {
-        return houseMapper.selectById(id);
+    protected HouseMapper getMapper() {
+        return houseMapper;
+    }
+
+    @Override
+    protected String getEntityName() {
+        return "房屋";
+    }
+
+    @Override
+    public int count() {
+        return houseMapper.countAll();
     }
 
     @Override
@@ -28,19 +43,10 @@ public class HouseServiceImpl implements HouseService {
     }
 
     @Override
-    public Map<String, Object> getByPage(String building, String status, Integer pageNum, Integer pageSize) {
-        if (pageNum == null || pageNum < 1) pageNum = 1;
-        if (pageSize == null || pageSize < 1) pageSize = 10;
-        int offset = (pageNum - 1) * pageSize;
-        List<House> list = houseMapper.selectByPage(building, status, offset, pageSize);
-        int total = houseMapper.selectCount(building, status);
-        Map<String, Object> result = new HashMap<>();
-        result.put("list", list);
-        result.put("total", total);
-        result.put("pageNum", pageNum);
-        result.put("pageSize", pageSize);
-        result.put("totalPages", (int) Math.ceil((double) total / pageSize));
-        return result;
+    public PageResult<House> getByPage(String building, String status, Integer pageNum, Integer pageSize) {
+        return PageHelper.doPage(pageNum, pageSize,
+                params -> houseMapper.selectByPage(building, status, params[0], params[1]),
+                () -> houseMapper.selectCount(building, status));
     }
 
     @Override
@@ -57,12 +63,11 @@ public class HouseServiceImpl implements HouseService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int update(House house) {
+        House existing = findExistingOrThrow(house.getId());
+        // 验证房屋状态转换合法性
+        if (house.getStatus() != null) {
+            StatusValidator.validateHouseTransition(existing.getStatus(), house.getStatus());
+        }
         return houseMapper.update(house);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public int delete(Integer id) {
-        return houseMapper.deleteById(id);
     }
 }

@@ -13,13 +13,13 @@ DROP TABLE IF EXISTS `employee`;
 CREATE TABLE `employee` (
     `id` INT PRIMARY KEY AUTO_INCREMENT COMMENT '员工ID',
     `name` VARCHAR(50) NOT NULL COMMENT '姓名',
-    `gender` VARCHAR(4) DEFAULT NULL COMMENT '性别',
+    `gender` ENUM('男','女') DEFAULT NULL COMMENT '性别',
     `phone` VARCHAR(20) DEFAULT NULL UNIQUE COMMENT '手机号',
     `position` VARCHAR(50) DEFAULT NULL COMMENT '岗位',
     `hire_date` DATE DEFAULT NULL COMMENT '入职日期',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    INDEX `idx_employee_phone` (`phone`)
+    INDEX `idx_employee_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='员工表';
 
 -- 2. 业主表
@@ -27,14 +27,13 @@ DROP TABLE IF EXISTS `owner`;
 CREATE TABLE `owner` (
     `id` INT PRIMARY KEY AUTO_INCREMENT COMMENT '业主ID',
     `name` VARCHAR(50) NOT NULL COMMENT '姓名',
-    `gender` VARCHAR(4) DEFAULT NULL COMMENT '性别',
+    `gender` ENUM('男','女') DEFAULT NULL COMMENT '性别',
     `phone` VARCHAR(20) DEFAULT NULL UNIQUE COMMENT '手机号',
     `id_card` VARCHAR(18) DEFAULT NULL UNIQUE COMMENT '身份证号',
     `move_in_date` DATE DEFAULT NULL COMMENT '入住日期',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    INDEX `idx_owner_name` (`name`),
-    INDEX `idx_owner_phone` (`phone`)
+    INDEX `idx_owner_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='业主表';
 
 -- 3. 房屋表
@@ -44,12 +43,13 @@ CREATE TABLE `house` (
     `building` VARCHAR(20) NOT NULL COMMENT '楼栋号',
     `unit` VARCHAR(10) DEFAULT NULL COMMENT '单元号',
     `room_number` VARCHAR(20) NOT NULL COMMENT '房间号',
-    `area` DECIMAL(10,2) DEFAULT NULL COMMENT '面积(㎡)',
+    `area` DECIMAL(10,2) DEFAULT NULL COMMENT '面积(㎡)' CHECK (`area` > 0),
     `house_type` VARCHAR(20) DEFAULT NULL COMMENT '户型',
     `owner_id` INT DEFAULT NULL COMMENT '业主ID',
     `status` ENUM('已入住','空置','装修中') DEFAULT '空置' COMMENT '入住状态',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY `uk_house` (`building`, `unit`, `room_number`),
     INDEX `idx_house_owner` (`owner_id`),
     INDEX `idx_house_status` (`status`),
     FOREIGN KEY (`owner_id`) REFERENCES `owner`(`id`) ON DELETE SET NULL
@@ -61,8 +61,8 @@ CREATE TABLE `fee` (
     `id` INT PRIMARY KEY AUTO_INCREMENT COMMENT '费用ID',
     `owner_id` INT NOT NULL COMMENT '业主ID',
     `house_id` INT DEFAULT NULL COMMENT '房屋ID',
-    `fee_type` VARCHAR(20) NOT NULL COMMENT '费用类型: 物业费/水费/电费/燃气费',
-    `amount` DECIMAL(10,2) NOT NULL COMMENT '金额',
+    `fee_type` ENUM('物业费','水费','电费','燃气费') NOT NULL COMMENT '费用类型: 物业费/水费/电费/燃气费',
+    `amount` DECIMAL(10,2) NOT NULL COMMENT '金额' CHECK (`amount` > 0),
     `should_pay_date` DATE NOT NULL COMMENT '应缴日期',
     `paid_date` DATE DEFAULT NULL COMMENT '实际缴费日期',
     `status` ENUM('未缴','已缴') DEFAULT '未缴' COMMENT '缴费状态',
@@ -71,6 +71,7 @@ CREATE TABLE `fee` (
     INDEX `idx_fee_owner` (`owner_id`),
     INDEX `idx_fee_house` (`house_id`),
     INDEX `idx_fee_status` (`status`),
+    INDEX `idx_fee_owner_status` (`owner_id`, `status`),
     FOREIGN KEY (`owner_id`) REFERENCES `owner`(`id`) ON DELETE RESTRICT,
     FOREIGN KEY (`house_id`) REFERENCES `house`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='费用账单表';
@@ -87,6 +88,7 @@ CREATE TABLE `parking` (
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     INDEX `idx_parking_owner` (`owner_id`),
     INDEX `idx_parking_status` (`status`),
+    UNIQUE INDEX `idx_parking_spot_number` (`spot_number`),
     FOREIGN KEY (`owner_id`) REFERENCES `owner`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='停车位表';
 
@@ -97,8 +99,8 @@ CREATE TABLE `complaint` (
     `owner_id` INT NOT NULL COMMENT '业主ID',
     `title` VARCHAR(100) NOT NULL COMMENT '投诉标题',
     `content` TEXT COMMENT '投诉内容',
-    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '投诉时间',
     `status` ENUM('待处理','处理中','已处理') DEFAULT '待处理' COMMENT '处理状态',
+    `resolved_at` DATETIME DEFAULT NULL COMMENT '解决时间',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     INDEX `idx_complaint_owner` (`owner_id`),
@@ -113,13 +115,15 @@ CREATE TABLE `repair` (
     `owner_id` INT NOT NULL COMMENT '业主ID',
     `device_name` VARCHAR(100) NOT NULL COMMENT '设备名称',
     `fault_description` TEXT COMMENT '故障描述',
-    `repair_person` VARCHAR(50) DEFAULT NULL COMMENT '维修人员',
+    `repair_employee_id` INT DEFAULT NULL COMMENT '维修人员(员工ID)',
     `status` ENUM('待维修','维修中','已完成') DEFAULT '待维修' COMMENT '维修状态',
+    `completed_at` DATETIME DEFAULT NULL COMMENT '完成时间',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     INDEX `idx_repair_owner` (`owner_id`),
     INDEX `idx_repair_status` (`status`),
-    FOREIGN KEY (`owner_id`) REFERENCES `owner`(`id`) ON DELETE RESTRICT
+    FOREIGN KEY (`owner_id`) REFERENCES `owner`(`id`) ON DELETE RESTRICT,
+    FOREIGN KEY (`repair_employee_id`) REFERENCES `employee`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='报修表';
 
 -- 8. 值班表
@@ -144,7 +148,8 @@ CREATE TABLE `sys_user` (
     `username` VARCHAR(50) NOT NULL UNIQUE COMMENT '用户名',
     `password` VARCHAR(100) NOT NULL COMMENT '密码(BCrypt加密)',
     `real_name` VARCHAR(50) DEFAULT NULL COMMENT '真实姓名',
-    `role` VARCHAR(20) DEFAULT 'user' COMMENT '角色: admin/user',
+    `role` ENUM('admin','user') NOT NULL DEFAULT 'user' COMMENT '角色: admin/user',
+    `token_version` INT NOT NULL DEFAULT 0 COMMENT 'Token版本号，修改密码时递增使旧Token失效',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统用户表';
@@ -194,15 +199,15 @@ INSERT INTO `parking` (`spot_number`, `license_plate`, `owner_id`, `status`, `cr
 ('B-002', '京D22222', 4, '使用中', '2024-01-01 00:00:00', '2024-01-01 00:00:00');
 
 -- 投诉数据
-INSERT INTO `complaint` (`owner_id`, `title`, `content`, `create_time`, `status`, `created_at`, `updated_at`) VALUES
-(1, '楼上噪音扰民', '楼上住户经常在晚上10点后制造噪音，影响休息', '2024-01-10 14:30:00', '待处理', '2024-01-10 14:30:00', '2024-01-10 14:30:00'),
-(2, '电梯故障', '1号楼电梯经常出现卡顿现象，存在安全隐患', '2024-01-12 09:15:00', '处理中', '2024-01-12 09:15:00', '2024-01-12 09:15:00'),
-(3, '绿化带被占用', '有人在公共绿化带私自种菜', '2024-01-08 16:45:00', '已处理', '2024-01-08 16:45:00', '2024-01-08 16:45:00');
+INSERT INTO `complaint` (`owner_id`, `title`, `content`, `status`, `created_at`, `updated_at`) VALUES
+(1, '楼上噪音扰民', '楼上住户经常在晚上10点后制造噪音，影响休息', '待处理', '2024-01-10 14:30:00', '2024-01-10 14:30:00'),
+(2, '电梯故障', '1号楼电梯经常出现卡顿现象，存在安全隐患', '处理中', '2024-01-12 09:15:00', '2024-01-12 09:15:00'),
+(3, '绿化带被占用', '有人在公共绿化带私自种菜', '已处理', '2024-01-08 16:45:00', '2024-01-08 16:45:00');
 
 -- 报修数据
-INSERT INTO `repair` (`owner_id`, `device_name`, `fault_description`, `repair_person`, `status`, `created_at`, `updated_at`) VALUES
-(1, '水龙头', '厨房水龙头漏水', '王五', '已完成', '2024-01-15 00:00:00', '2024-01-15 00:00:00'),
-(2, '空调', '空调不制冷', '王五', '维修中', '2024-01-15 00:00:00', '2024-01-15 00:00:00'),
+INSERT INTO `repair` (`owner_id`, `device_name`, `fault_description`, `repair_employee_id`, `status`, `created_at`, `updated_at`) VALUES
+(1, '水龙头', '厨房水龙头漏水', 3, '已完成', '2024-01-15 00:00:00', '2024-01-15 00:00:00'),
+(2, '空调', '空调不制冷', 3, '维修中', '2024-01-15 00:00:00', '2024-01-15 00:00:00'),
 (3, '门锁', '防盗门锁芯损坏', NULL, '待维修', '2024-01-15 00:00:00', '2024-01-15 00:00:00');
 
 -- 值班数据
@@ -216,5 +221,19 @@ INSERT INTO `duty` (`employee_id`, `duty_date`, `shift`, `created_at`, `updated_
 -- 系统用户 (密码: admin123, BCrypt加密)
 INSERT INTO `sys_user` (`username`, `password`, `real_name`, `role`, `created_at`, `updated_at`) VALUES
 ('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '系统管理员', 'admin', '2024-01-01 00:00:00', '2024-01-01 00:00:00');
+
+-- 10. 状态变更审计日志表
+DROP TABLE IF EXISTS `status_change_log`;
+CREATE TABLE `status_change_log` (
+    `id` INT PRIMARY KEY AUTO_INCREMENT COMMENT '日志ID',
+    `entity_type` VARCHAR(20) NOT NULL COMMENT '实体类型: complaint/repair/fee/house/parking',
+    `entity_id` INT NOT NULL COMMENT '实体ID',
+    `old_status` VARCHAR(20) COMMENT '原状态',
+    `new_status` VARCHAR(20) NOT NULL COMMENT '新状态',
+    `changed_by` VARCHAR(50) COMMENT '操作人用户名',
+    `changed_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '变更时间',
+    INDEX `idx_scl_entity` (`entity_type`, `entity_id`),
+    INDEX `idx_scl_changed_at` (`changed_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='状态变更审计日志表';
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -1,5 +1,6 @@
 package com.property.service.impl;
 
+import com.property.common.BaseService;
 import com.property.common.BusinessException;
 import com.property.common.PageHelper;
 import com.property.common.PageResult;
@@ -10,7 +11,7 @@ import com.property.mapper.HouseMapper;
 import com.property.mapper.OwnerMapper;
 import com.property.mapper.RepairMapper;
 import com.property.service.OwnerService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,26 +21,28 @@ import java.util.List;
  * 业主Service实现类
  */
 @Service
-public class OwnerServiceImpl implements OwnerService {
+@RequiredArgsConstructor
+public class OwnerServiceImpl extends BaseService<Owner, OwnerMapper> implements OwnerService {
 
-    @Autowired
-    private OwnerMapper ownerMapper;
-
-    @Autowired
-    private HouseMapper houseMapper;
-
-    @Autowired
-    private FeeMapper feeMapper;
-
-    @Autowired
-    private ComplaintMapper complaintMapper;
-
-    @Autowired
-    private RepairMapper repairMapper;
+    private final OwnerMapper ownerMapper;
+    private final HouseMapper houseMapper;
+    private final FeeMapper feeMapper;
+    private final ComplaintMapper complaintMapper;
+    private final RepairMapper repairMapper;
 
     @Override
-    public Owner getById(Integer id) {
-        return ownerMapper.selectById(id);
+    protected OwnerMapper getMapper() {
+        return ownerMapper;
+    }
+
+    @Override
+    protected String getEntityName() {
+        return "业主";
+    }
+
+    @Override
+    public int count() {
+        return ownerMapper.countAll();
     }
 
     @Override
@@ -56,27 +59,8 @@ public class OwnerServiceImpl implements OwnerService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int add(Owner owner) {
-        return ownerMapper.insert(owner);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public int update(Owner owner) {
-        Owner existing = ownerMapper.selectById(owner.getId());
-        if (existing == null) {
-            throw new BusinessException("业主不存在: id=" + owner.getId());
-        }
-        return ownerMapper.update(owner);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
     public int delete(Integer id) {
-        Owner existing = ownerMapper.selectById(id);
-        if (existing == null) {
-            throw new BusinessException("业主不存在: id=" + id);
-        }
+        findExistingOrThrow(id);
         // 检查是否有关联数据
         int houseCount = houseMapper.countByOwnerId(id);
         if (houseCount > 0) {

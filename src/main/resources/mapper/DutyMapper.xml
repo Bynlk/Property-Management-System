@@ -15,7 +15,8 @@
     </resultMap>
 
     <sql id="selectColumns">
-        SELECT d.*, e.name AS employee_name
+        SELECT d.id, d.employee_id, d.duty_date, d.shift,
+               d.created_at, d.updated_at, e.name AS employee_name
         FROM duty d LEFT JOIN employee e ON d.employee_id = e.id
     </sql>
 
@@ -29,6 +30,11 @@
     <select id="selectById" resultMap="dutyResultMap">
         <include refid="selectColumns"/>
         WHERE d.id = #{id}
+    </select>
+
+    <select id="selectAll" resultMap="dutyResultMap">
+        <include refid="selectColumns"/>
+        ORDER BY d.id DESC
     </select>
 
     <select id="selectByCondition" resultMap="dutyResultMap">
@@ -45,11 +51,8 @@
     </select>
 
     <select id="selectCount" resultType="int">
-        SELECT COUNT(*) FROM duty
-        <where>
-            <if test="employeeId != null">AND employee_id = #{employeeId}</if>
-            <if test="shift != null and shift != ''">AND shift = #{shift}</if>
-        </where>
+        SELECT COUNT(*) FROM duty d
+        <include refid="whereClause"/>
     </select>
 
     <select id="countByEmployeeId" resultType="int">

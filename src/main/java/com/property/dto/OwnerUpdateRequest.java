@@ -1,0 +1,40 @@
+package com.property.dto;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+
+/**
+ * 业主更新请求DTO
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class OwnerUpdateRequest {
+
+    @NotNull(message = "业主ID不能为空")
+    private Integer id;
+
+    @Size(max = 50, message = "姓名长度不能超过50")
+    private String name;
+
+    @Pattern(regexp = "^$|^男$|^女$", message = "性别只能为男或女")
+    private String gender;
+
+    @Pattern(regexp = "^$|^1[3-9]\\d{9}$", message = "手机号格式不正确")
+    private String phone;
+
+    @Pattern(regexp = "^$|^\\d{17}[\\dXx]$", message = "身份证号格式不正确")
+    private String idCard;
+
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Shanghai")
+    private LocalDate moveInDate;
+}

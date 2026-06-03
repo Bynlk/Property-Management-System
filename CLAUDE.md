@@ -13,12 +13,14 @@
 | ORM | MyBatis | 3.0.3 (Spring Boot Starter) |
 | 数据库 | MySQL | 8.0.33 |
 | 连接池 | Alibaba Druid | 1.2.21 |
-| 认证 | Spring Security + JWT (jjwt) | — |
-| 前端框架 | React | 18 |
-| 前端构建 | Vite | 6.x |
-| 样式 | Tailwind CSS | 4.x |
-| 路由 | React Router | 6.x |
-| HTTP | Axios | — |
+| 认证 | Spring Security + JWT (jjwt) | 0.12.5 |
+| API 文档 | SpringDoc OpenAPI (Swagger UI) | 2.8.6 |
+| 前端框架 | React | 19.2 |
+| 前端语言 | TypeScript | 6.0 |
+| 前端构建 | Vite | 8.x |
+| 样式 | Tailwind CSS | 4.3 |
+| 路由 | React Router | 7.x |
+| HTTP | Axios | 1.16 |
 | 图标 | Lucide React | — |
 | Java | JDK 17 | — |
 | Node.js | 24.x | — |
@@ -33,19 +35,23 @@
 │   │   ├── entity/        # 9 个实体类 (8 业务 + User)
 │   │   ├── mapper/        # 9 个 MyBatis Mapper 接口
 │   │   ├── service/       # 9 个 Service 接口 + Impl
-│   │   └── security/      # JWT 工具 + 过滤器 + SecurityConfig
+│   │   └── security/      # JWT 工具 + 过滤器 + SecurityConfig (RBAC)
 │   └── resources/
 │       ├── application.yml           # Spring Boot 配置
 │       ├── property_management.sql   # 建库建表 + 测试数据
 │       └── mapper/                   # 9 个 MyBatis XML 映射文件
-└── frontend/                         # React 前端
-    ├── src/
-    │   ├── api.ts          # Axios API 层
-    │   ├── types.ts        # TypeScript 类型定义
-    │   ├── components/     # 通用组件 (Layout, DataTable, FormModal, ConfirmDialog)
-    │   └── pages/          # 页面 (Login, Dashboard, 8 业务列表页)
-    ├── vite.config.ts      # Vite 配置 + API 代理
-    └── package.json
+├── frontend/                         # React 前端
+│   ├── src/
+│   │   ├── api.ts          # Axios API 层
+│   │   ├── types.ts        # TypeScript 类型定义
+│   │   ├── components/     # 通用组件 (Layout, DataTable, FormModal, ConfirmDialog)
+│   │   └── pages/          # 页面 (Login, Dashboard, 8 业务列表页)
+│   ├── vite.config.ts      # Vite 配置 + API 代理
+│   └── package.json
+└── docs/                             # 项目文档
+    ├── 答辩稿.md                     # 答辩 PPT 提纲 + 讲稿 + 问答准备
+    ├── 项目记录.md                   # 开发问题与解决方案
+    └── archive/                      # AI 提示词归档
 ```
 
 ## 构建与启动
@@ -72,12 +78,14 @@
 - 认证接口：`POST /api/auth/login`，`GET /api/auth/info`
 - 业务接口：`/api/{模块}/page|get/{id}|add|update|delete/{id}`
 - 需在请求头携带 `Authorization: Bearer <token>`
+- Swagger UI：`http://localhost:8080/swagger-ui.html`（启动后端后访问）
 
 ## 架构说明
 
 - **后端**：Spring Boot + MyBatis 三层架构，Controller 返回 JSON
 - **前端**：React SPA，Vite 开发服务器代理 `/api` 到后端 8080 端口
 - **认证**：JWT Token，前端存储在 localStorage，请求时通过 Authorization Header 传递
+- **权限**：RBAC 角色控制，admin 可执行增删改，普通用户仅可查看
 - **分页**：后端手动分页（offset + limit），前端 DataTable 组件渲染
 
 ## 注意事项

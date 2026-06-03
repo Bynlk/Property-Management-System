@@ -4,7 +4,8 @@ import {
   Users, Home, Receipt, MessageSquare, Wrench, ArrowRight,
   DollarSign, AlertCircle, CarFront,
 } from 'lucide-react'
-import { ownerApi, houseApi, feeApi, complaintApi, repairApi } from '../api'
+import { showToast } from '../components/Toast'
+import { dashboardApi } from '../api'
 
 interface StatCard {
   label: string
@@ -40,22 +41,17 @@ export default function DashboardPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [owners, houses, fees, complaints, repairs] = await Promise.all([
-          ownerApi.page({ pageNum: 1, pageSize: 1 }),
-          houseApi.page({ pageNum: 1, pageSize: 1 }),
-          feeApi.page({ pageNum: 1, pageSize: 1 }),
-          complaintApi.page({ pageNum: 1, pageSize: 1 }),
-          repairApi.page({ pageNum: 1, pageSize: 1 }),
-        ])
+        const { data: res } = await dashboardApi.stats()
+        const s = res.data ?? { owners: 0, houses: 0, fees: 0, complaints: 0, repairs: 0 }
         setStats([
-          { label: '业主总数', value: owners.data.total, icon: Users, to: '/owner' },
-          { label: '房屋总数', value: houses.data.total, icon: Home, to: '/house' },
-          { label: '费用记录', value: fees.data.total, icon: DollarSign, to: '/fee' },
-          { label: '投诉工单', value: complaints.data.total, icon: AlertCircle, to: '/complaint' },
-          { label: '报修工单', value: repairs.data.total, icon: Wrench, to: '/repair' },
+          { label: '业主总数', value: s.owners, icon: Users, to: '/owner' },
+          { label: '房屋总数', value: s.houses, icon: Home, to: '/house' },
+          { label: '费用记录', value: s.fees, icon: DollarSign, to: '/fee' },
+          { label: '投诉工单', value: s.complaints, icon: AlertCircle, to: '/complaint' },
+          { label: '报修工单', value: s.repairs, icon: Wrench, to: '/repair' },
         ])
       } catch {
-        // ignore
+        showToast('error', '加载统计数据失败')
       } finally {
         setLoading(false)
       }

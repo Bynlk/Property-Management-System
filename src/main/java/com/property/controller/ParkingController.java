@@ -1,79 +1,90 @@
 package com.property.controller;
 
+import com.property.common.BaseCrudController;
+import com.property.common.PageResult;
+import com.property.common.Result;
+import com.property.dto.ParkingCreateRequest;
+import com.property.dto.ParkingUpdateRequest;
 import com.property.entity.Parking;
+import com.property.enums.ParkingStatus;
 import com.property.service.ParkingService;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * 停车位Controller
+ */
+@Slf4j
+@RequiredArgsConstructor
+@Tag(name = "停车位管理", description = "停车位的增删改查")
 @RestController
 @RequestMapping("/api/parking")
-public class ParkingController {
+public class ParkingController extends BaseCrudController<Parking, ParkingCreateRequest, ParkingUpdateRequest, ParkingService> {
 
-    @Autowired
-    private ParkingService parkingService;
+    private final ParkingService parkingService;
 
+    @Override
+    protected ParkingService getService() { return parkingService; }
+
+    @Override
+    protected String getEntityName() { return "停车位"; }
+
+    @Override
+    protected Parking toEntity(ParkingCreateRequest req) {
+        return Parking.builder()
+                .spotNumber(req.getSpotNumber())
+                .licensePlate(req.getLicensePlate())
+                .ownerId(req.getOwnerId())
+                .status(req.getStatus() != null ? ParkingStatus.valueOf(req.getStatus()) : null)
+                .build();
+    }
+
+    @Override
+    protected Parking toEntity(ParkingUpdateRequest req, Integer id) {
+        return Parking.builder()
+                .id(id)
+                .spotNumber(req.getSpotNumber())
+                .licensePlate(req.getLicensePlate())
+                .ownerId(req.getOwnerId())
+                .status(req.getStatus() != null ? ParkingStatus.valueOf(req.getStatus()) : null)
+                .build();
+    }
+
+    @Override
+    protected PageResult<Parking> doPage(Object... params) {
+        return parkingService.getByPage("", "", (Integer) params[0], (Integer) params[1]);
+    }
+
+    @Override
+    protected int doAdd(Parking entity) { return parkingService.add(entity); }
+
+    @Override
+    protected int doUpdate(Parking entity) { return parkingService.update(entity); }
+
+    @Override
+    protected int doDelete(Integer id) { return parkingService.delete(id); }
+
+    @Override
+    protected Parking doGetById(Integer id) { return parkingService.getById(id); }
+
+    @Operation(summary = "分页查询停车位", description = "支持按车位编号模糊搜索、按使用状态筛选")
     @GetMapping("/page")
-    public Map<String, Object> page(
+    public Result<PageResult<Parking>> page(
             @RequestParam(defaultValue = "") String spotNumber,
             @RequestParam(defaultValue = "") String status,
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        return parkingService.getByPage(spotNumber, status, pageNum, pageSize);
+        return Result.success(parkingService.getByPage(spotNumber, status, pageNum, pageSize));
     }
 
-    @GetMapping("/get/{id}")
-    public Parking getById(@PathVariable Integer id) {
-        return parkingService.getById(id);
-    }
-
+    @Operation(summary = "根据业主ID查询停车位", description = "查询指定业主绑定的所有停车位")
     @GetMapping("/owner/{ownerId}")
-    public List<Parking> getByOwnerId(@PathVariable Integer ownerId) {
-        return parkingService.getByOwnerId(ownerId);
-    }
-
-    @PostMapping("/add")
-    public Map<String, Object> add(@RequestBody Parking parking) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            int rows = parkingService.add(parking);
-            result.put("code", rows > 0 ? 0 : 1);
-            result.put("msg", rows > 0 ? "新增成功" : "新增失败");
-        } catch (Exception e) {
-            result.put("code", 1);
-            result.put("msg", "操作异常，请联系管理员");
-        }
-        return result;
-    }
-
-    @PostMapping("/update")
-    public Map<String, Object> update(@RequestBody Parking parking) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            int rows = parkingService.update(parking);
-            result.put("code", rows > 0 ? 0 : 1);
-            result.put("msg", rows > 0 ? "修改成功" : "修改失败");
-        } catch (Exception e) {
-            result.put("code", 1);
-            result.put("msg", "操作异常，请联系管理员");
-        }
-        return result;
-    }
-
-    @PostMapping("/delete/{id}")
-    public Map<String, Object> delete(@PathVariable Integer id) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            int rows = parkingService.delete(id);
-            result.put("code", rows > 0 ? 0 : 1);
-            result.put("msg", rows > 0 ? "删除成功" : "删除失败");
-        } catch (Exception e) {
-            result.put("code", 1);
-            result.put("msg", "操作异常，请联系管理员");
-        }
-        return result;
+    public Result<List<Parking>> getByOwnerId(@PathVariable Integer ownerId) {
+        return Result.success(parkingService.getByOwnerId(ownerId));
     }
 }

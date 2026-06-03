@@ -9,16 +9,22 @@
         <result property="ownerId" column="owner_id"/>
         <result property="deviceName" column="device_name"/>
         <result property="faultDescription" column="fault_description"/>
-        <result property="repairPerson" column="repair_person"/>
+        <result property="repairEmployeeId" column="repair_employee_id"/>
         <result property="status" column="status"/>
+        <result property="completedAt" column="completed_at"/>
         <result property="ownerName" column="owner_name"/>
+        <result property="repairEmployeeName" column="repair_employee_name"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
     <sql id="selectColumns">
-        SELECT r.*, o.name AS owner_name
-        FROM repair r LEFT JOIN owner o ON r.owner_id = o.id
+        SELECT r.id, r.owner_id, r.device_name, r.fault_description, r.repair_employee_id,
+               r.status, r.completed_at, r.created_at, r.updated_at,
+               o.name AS owner_name, e.name AS repair_employee_name
+        FROM repair r
+        LEFT JOIN owner o ON r.owner_id = o.id
+        LEFT JOIN employee e ON r.repair_employee_id = e.id
     </sql>
 
     <sql id="whereClause">
@@ -31,6 +37,11 @@
     <select id="selectById" resultMap="repairResultMap">
         <include refid="selectColumns"/>
         WHERE r.id = #{id}
+    </select>
+
+    <select id="selectAll" resultMap="repairResultMap">
+        <include refid="selectColumns"/>
+        ORDER BY r.id DESC
     </select>
 
     <select id="selectByCondition" resultMap="repairResultMap">
@@ -47,11 +58,13 @@
     </select>
 
     <select id="selectCount" resultType="int">
+        SELECT COUNT(*) FROM repair r
+        <include refid="whereClause"/>
+    </select>
+
+    <!-- 查询全部记录数（无条件） -->
+    <select id="countAll" resultType="int">
         SELECT COUNT(*) FROM repair
-        <where>
-            <if test="ownerId != null">AND owner_id = #{ownerId}</if>
-            <if test="status != null and status != ''">AND status = #{status}</if>
-        </where>
     </select>
 
     <select id="selectByOwnerId" resultMap="repairResultMap">
@@ -64,8 +77,8 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO repair (owner_id, device_name, fault_description, repair_person, status, created_at, updated_at)
-        VALUES (#{ownerId}, #{deviceName}, #{faultDescription}, #{repairPerson}, #{status}, #{createdAt}, #{updatedAt})
+        INSERT INTO repair (owner_id, device_name, fault_description, repair_employee_id, status, created_at, updated_at)
+        VALUES (#{ownerId}, #{deviceName}, #{faultDescription}, #{repairEmployeeId}, #{status}, #{createdAt}, #{updatedAt})
     </insert>
 
     <update id="update">
@@ -74,8 +87,9 @@
             <if test="ownerId != null">owner_id = #{ownerId},</if>
             <if test="deviceName != null">device_name = #{deviceName},</if>
             <if test="faultDescription != null">fault_description = #{faultDescription},</if>
-            <if test="repairPerson != null">repair_person = #{repairPerson},</if>
+            <if test="repairEmployeeId != null">repair_employee_id = #{repairEmployeeId},</if>
             <if test="status != null">status = #{status},</if>
+            <if test="completedAt != null">completed_at = #{completedAt},</if>
             <if test="updatedAt != null">updated_at = #{updatedAt},</if>
         </set>
         WHERE id = #{id}

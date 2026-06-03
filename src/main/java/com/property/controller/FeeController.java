@@ -1,74 +1,90 @@
 package com.property.controller;
 
+import com.property.common.BaseCrudController;
+import com.property.common.PageResult;
+import com.property.common.Result;
+import com.property.dto.FeeCreateRequest;
+import com.property.dto.FeeUpdateRequest;
 import com.property.entity.Fee;
+import com.property.enums.FeeStatus;
+import com.property.enums.FeeType;
 import com.property.service.FeeService;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
-
+/**
+ * 费用Controller
+ */
+@Slf4j
+@RequiredArgsConstructor
+@Tag(name = "费用管理", description = "费用账单的增删改查")
 @RestController
 @RequestMapping("/api/fee")
-public class FeeController {
+public class FeeController extends BaseCrudController<Fee, FeeCreateRequest, FeeUpdateRequest, FeeService> {
 
-    @Autowired
-    private FeeService feeService;
+    private final FeeService feeService;
 
+    @Override
+    protected FeeService getService() { return feeService; }
+
+    @Override
+    protected String getEntityName() { return "费用"; }
+
+    @Override
+    protected Fee toEntity(FeeCreateRequest req) {
+        return Fee.builder()
+                .ownerId(req.getOwnerId())
+                .houseId(req.getHouseId())
+                .feeType(req.getFeeType() != null ? FeeType.valueOf(req.getFeeType()) : null)
+                .amount(req.getAmount())
+                .shouldPayDate(req.getShouldPayDate())
+                .paidDate(req.getPaidDate())
+                .status(req.getStatus() != null ? FeeStatus.valueOf(req.getStatus()) : null)
+                .build();
+    }
+
+    @Override
+    protected Fee toEntity(FeeUpdateRequest req, Integer id) {
+        return Fee.builder()
+                .id(id)
+                .ownerId(req.getOwnerId())
+                .houseId(req.getHouseId())
+                .feeType(req.getFeeType() != null ? FeeType.valueOf(req.getFeeType()) : null)
+                .amount(req.getAmount())
+                .shouldPayDate(req.getShouldPayDate())
+                .paidDate(req.getPaidDate())
+                .status(req.getStatus() != null ? FeeStatus.valueOf(req.getStatus()) : null)
+                .build();
+    }
+
+    @Override
+    protected PageResult<Fee> doPage(Object... params) {
+        return feeService.getByPage(null, "", "", (Integer) params[0], (Integer) params[1]);
+    }
+
+    @Override
+    protected int doAdd(Fee entity) { return feeService.add(entity); }
+
+    @Override
+    protected int doUpdate(Fee entity) { return feeService.update(entity); }
+
+    @Override
+    protected int doDelete(Integer id) { return feeService.delete(id); }
+
+    @Override
+    protected Fee doGetById(Integer id) { return feeService.getById(id); }
+
+    @Operation(summary = "分页查询费用", description = "支持按业主ID、费用类型、缴费状态筛选")
     @GetMapping("/page")
-    public Map<String, Object> page(
+    public Result<PageResult<Fee>> page(
             @RequestParam(required = false) Integer ownerId,
             @RequestParam(defaultValue = "") String feeType,
             @RequestParam(defaultValue = "") String status,
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        return feeService.getByPage(ownerId, feeType, status, pageNum, pageSize);
-    }
-
-    @GetMapping("/get/{id}")
-    public Fee getById(@PathVariable Integer id) {
-        return feeService.getById(id);
-    }
-
-    @PostMapping("/add")
-    public Map<String, Object> add(@RequestBody Fee fee) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            int rows = feeService.add(fee);
-            result.put("code", rows > 0 ? 0 : 1);
-            result.put("msg", rows > 0 ? "新增成功" : "新增失败");
-        } catch (Exception e) {
-            result.put("code", 1);
-            result.put("msg", "操作异常，请联系管理员");
-        }
-        return result;
-    }
-
-    @PostMapping("/update")
-    public Map<String, Object> update(@RequestBody Fee fee) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            int rows = feeService.update(fee);
-            result.put("code", rows > 0 ? 0 : 1);
-            result.put("msg", rows > 0 ? "修改成功" : "修改失败");
-        } catch (Exception e) {
-            result.put("code", 1);
-            result.put("msg", "操作异常，请联系管理员");
-        }
-        return result;
-    }
-
-    @PostMapping("/delete/{id}")
-    public Map<String, Object> delete(@PathVariable Integer id) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            int rows = feeService.delete(id);
-            result.put("code", rows > 0 ? 0 : 1);
-            result.put("msg", rows > 0 ? "删除成功" : "删除失败");
-        } catch (Exception e) {
-            result.put("code", 1);
-            result.put("msg", "操作异常，请联系管理员");
-        }
-        return result;
+        return Result.success(feeService.getByPage(ownerId, feeType, status, pageNum, pageSize));
     }
 }

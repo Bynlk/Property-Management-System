@@ -1,7 +1,7 @@
 export interface Owner {
   id: number
   name: string
-  gender: '男' | '女' | ''
+  gender: '男' | '女' | null
   phone: string
   idCard: string
   moveInDate: string
@@ -10,7 +10,7 @@ export interface Owner {
 export interface Employee {
   id: number
   name: string
-  gender: '男' | '女' | ''
+  gender: '男' | '女' | null
   phone: string
   position: string
   hireDate: string
@@ -24,7 +24,7 @@ export interface House {
   area: number
   houseType: string
   ownerId: number | null
-  status: '已入住' | '空置' | '装修中' | ''
+  status: '已入住' | '空置' | '装修中' | null
   ownerName?: string
 }
 
@@ -32,11 +32,11 @@ export interface Fee {
   id: number
   ownerId: number
   houseId: number | null
-  feeType: '物业费' | '水费' | '电费' | '燃气费' | ''
+  feeType: '物业费' | '水费' | '电费' | '燃气费' | null
   amount: number
   shouldPayDate: string
   paidDate: string | null
-  status: '未缴' | '已缴' | ''
+  status: '未缴' | '已缴' | null
   ownerName?: string
   houseInfo?: string
 }
@@ -46,7 +46,7 @@ export interface Parking {
   spotNumber: string
   licensePlate: string | null
   ownerId: number | null
-  status: '使用中' | '空闲' | ''
+  status: '使用中' | '空闲' | null
   ownerName?: string
 }
 
@@ -55,8 +55,7 @@ export interface Complaint {
   ownerId: number
   title: string
   content: string
-  createTime: string
-  status: '待处理' | '处理中' | '已处理' | ''
+  status: '待处理' | '处理中' | '已处理' | null
   ownerName?: string
 }
 
@@ -65,16 +64,17 @@ export interface Repair {
   ownerId: number
   deviceName: string
   faultDescription: string
-  repairPerson: string | null
-  status: '待维修' | '维修中' | '已完成' | ''
+  repairEmployeeId: number | null
+  status: '待维修' | '维修中' | '已完成' | null
   ownerName?: string
+  repairEmployeeName?: string
 }
 
 export interface Duty {
   id: number
   employeeId: number
   dutyDate: string
-  shift: '早班' | '中班' | '晚班' | ''
+  shift: '早班' | '中班' | '晚班' | null
   employeeName?: string
 }
 

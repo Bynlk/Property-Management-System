@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.property.mapper.StatusChangeLogMapper">
+
+    <resultMap id="statusChangeLogMap" type="com.property.entity.StatusChangeLog">
+        <id column="id" property="id"/>
+        <result column="entity_type" property="entityType"/>
+        <result column="entity_id" property="entityId"/>
+        <result column="old_status" property="oldStatus"/>
+        <result column="new_status" property="newStatus"/>
+        <result column="changed_by" property="changedBy"/>
+        <result column="changed_at" property="changedAt"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO status_change_log (entity_type, entity_id, old_status, new_status, changed_by, changed_at)
+        VALUES (#{entityType}, #{entityId}, #{oldStatus}, #{newStatus}, #{changedBy}, #{changedAt})
+    </insert>
+
+    <select id="selectByEntity" resultMap="statusChangeLogMap">
+        SELECT id, entity_type, entity_id, old_status, new_status, changed_by, changed_at
+        FROM status_change_log
+        WHERE entity_type = #{entityType} AND entity_id = #{entityId}
+        ORDER BY changed_at DESC
+    </select>
+</mapper>

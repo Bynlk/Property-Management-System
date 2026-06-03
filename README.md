@@ -6,7 +6,7 @@
 
 A full-stack property management platform built with **Spring Boot 3** and **React 19**, featuring a Liquid Glass UI design language.
 
-🌐 **English** · **[中文](README.zh-CN.md)**
+🌐 **English**
 
 [![Java](https://img.shields.io/badge/Java-17-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/17/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
@@ -19,7 +19,7 @@ A full-stack property management platform built with **Spring Boot 3** and **Rea
 
 <br />
 
-[Features](#features) · [Tech Stack](#tech-stack) · [Quick Start](#quick-start) · [Architecture](#architecture) · [API Reference](#api-reference) · [UI Design](#ui-design) · [中文文档](README.zh-CN.md)
+[Features](#features) · [Tech Stack](#tech-stack) · [Quick Start](#quick-start) · [Architecture](#architecture) · [API Reference](#api-reference) · [UI Design](#ui-design)
 
 </div>
 
@@ -127,6 +127,36 @@ Frontend starts at **http://localhost:3000** — API requests to `/api` are prox
 | Username | `admin` |
 | Password | `admin123` |
 
+### Docker Quick Start
+
+The fastest way to run the full stack (MySQL + backend + frontend):
+
+```bash
+# Build and start all services
+docker compose up --build -d
+
+# Check status
+docker compose ps
+
+# View logs
+docker compose logs -f
+
+# Stop
+docker compose down
+```
+
+The application will be available at **http://localhost** (frontend) and **http://localhost:8080** (backend API).
+
+To persist environment variables, create a `.env` file in the project root:
+
+```env
+MYSQL_ROOT_PASSWORD=your_password
+JWT_SECRET=$(openssl rand -base64 32)
+CORS_ORIGINS=http://localhost
+```
+
+> **Note:** The first run initializes the database from `property_management.sql`. To reset, run `docker compose down -v` to remove volumes.
+
 ## Architecture
 
 ```
@@ -163,6 +193,12 @@ Frontend starts at **http://localhost:3000** — API requests to `/api` are prox
 ### Project Structure
 
 ```
+├── .github/workflows/ci.yml   # GitHub Actions CI pipeline
+├── .editorconfig               # Editor formatting rules
+├── docker-compose.yml          # Multi-container orchestration
+├── Dockerfile                  # Backend container image
+├── nginx/default.conf          # Nginx reverse proxy config
+├── pom.xml                     # Maven project descriptor
 ├── src/main/
 │   ├── java/com/property/
 │   │   ├── PropertyManagementApplication.java    # Entry point
@@ -172,10 +208,15 @@ Frontend starts at **http://localhost:3000** — API requests to `/api` are prox
 │   │   ├── service/          # Business logic (interface + impl)
 │   │   └── security/         # JWT utils, auth filter, security config
 │   └── resources/
-│       ├── application.yml                       # App configuration
+│       ├── application.yml                       # Shared configuration
+│       ├── application-dev.yml                   # Dev profile (debug logging)
+│       ├── application-prod.yml                  # Prod profile (strict logging)
+│       ├── logback-spring.xml                    # Logging configuration
 │       ├── property_management.sql               # Schema + seed data
 │       └── mapper/                               # MyBatis XML mappings
 └── frontend/
+    ├── Dockerfile              # Frontend container image (multi-stage)
+    ├── nginx/default.conf      # Nginx config for frontend
     └── src/
         ├── api.ts             # Axios instance + generic CRUD factory
         ├── types.ts           # TypeScript interfaces
@@ -269,13 +310,15 @@ The frontend uses a **dark theme** with **Liquid Glass** design language:
 
 ## Environment Variables
 
-Before deploying to production, update these values in [`application.yml`](src/main/resources/application.yml):
+The app uses Spring Profiles. Set `SPRING_PROFILES_ACTIVE` to switch between `dev` (default) and `prod`.
 
-| Key | Location | What to Change |
-|:----|:---------|:---------------|
-| `spring.datasource.password` | `application.yml` | MySQL password |
-| `jwt.secret` | `application.yml` | Base64-encoded JWT signing key |
-| `jwt.expiration` | `application.yml` | Token TTL (default: 24h) |
+| Key | Description | Default |
+|:----|:------------|:--------|
+| `SPRING_PROFILES_ACTIVE` | Active Spring profile (`dev` / `prod`) | `dev` |
+| `DB_PASSWORD` | MySQL password | *(required in prod)* |
+| `JWT_SECRET` | Base64-encoded JWT signing key | *(required)* |
+| `CORS_ORIGINS` | Allowed CORS origins (comma-separated) | `http://localhost:3000` |
+| `SPRING_DATASOURCE_URL` | Full JDBC URL (prod only) | `jdbc:mysql://localhost:3306/...` |
 
 ## Deployment
 
@@ -313,11 +356,11 @@ server {
 ## Roadmap
 
 - [ ] Unit tests (backend JUnit + frontend Vitest)
-- [ ] Global exception handler
-- [ ] Role-based access control (admin vs. user)
+- [x] Global exception handler — `@RestControllerAdvice` centralized error handling
+- [x] Role-based access control (admin vs. user) — implemented via Spring Security RBAC
 - [ ] File upload (avatar, complaint photos)
 - [ ] Dashboard charts and statistics
-- [ ] Docker Compose deployment
+- [x] Docker Compose deployment — `docker compose up --build`
 - [ ] i18n (Chinese / English)
 
 ## License

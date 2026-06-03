@@ -12,16 +12,12 @@
         <result property="phone" column="phone"/>
         <result property="idCard" column="id_card"/>
         <result property="moveInDate" column="move_in_date"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
-    <!-- 根据ID查询 -->
-    <select id="selectById" resultMap="ownerResultMap">
-        SELECT * FROM owner WHERE id = #{id}
-    </select>
-
-    <!-- 模糊查询 -->
-    <select id="selectByCondition" resultMap="ownerResultMap">
-        SELECT * FROM owner
+    <!-- 公共 WHERE 条件 -->
+    <sql id="whereClause">
         <where>
             <if test="name != null and name != ''">
                 AND name LIKE CONCAT('%', #{name}, '%')
@@ -30,25 +26,29 @@
                 AND phone LIKE CONCAT('%', #{phone}, '%')
             </if>
         </where>
+    </sql>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" resultMap="ownerResultMap">
+        SELECT id, name, gender, phone, id_card, move_in_date, created_at, updated_at FROM owner WHERE id = #{id}
+    </select>
+
+    <!-- 模糊查询 -->
+    <select id="selectByCondition" resultMap="ownerResultMap">
+        SELECT id, name, gender, phone, id_card, move_in_date, created_at, updated_at FROM owner
+        <include refid="whereClause"/>
         ORDER BY id DESC
     </select>
 
     <!-- 查询所有 -->
     <select id="selectAll" resultMap="ownerResultMap">
-        SELECT * FROM owner ORDER BY id DESC
+        SELECT id, name, gender, phone, id_card, move_in_date, created_at, updated_at FROM owner ORDER BY id DESC
     </select>
 
     <!-- 分页查询 -->
     <select id="selectByPage" resultMap="ownerResultMap">
-        SELECT * FROM owner
-        <where>
-            <if test="name != null and name != ''">
-                AND name LIKE CONCAT('%', #{name}, '%')
-            </if>
-            <if test="phone != null and phone != ''">
-                AND phone LIKE CONCAT('%', #{phone}, '%')
-            </if>
-        </where>
+        SELECT id, name, gender, phone, id_card, move_in_date, created_at, updated_at FROM owner
+        <include refid="whereClause"/>
         ORDER BY id DESC
         LIMIT #{offset}, #{pageSize}
     </select>
@@ -56,20 +56,18 @@
     <!-- 查询总记录数 -->
     <select id="selectCount" resultType="int">
         SELECT COUNT(*) FROM owner
-        <where>
-            <if test="name != null and name != ''">
-                AND name LIKE CONCAT('%', #{name}, '%')
-            </if>
-            <if test="phone != null and phone != ''">
-                AND phone LIKE CONCAT('%', #{phone}, '%')
-            </if>
-        </where>
+        <include refid="whereClause"/>
+    </select>
+
+    <!-- 查询全部记录数（无条件） -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM owner
     </select>
 
     <!-- 新增 -->
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO owner (name, gender, phone, id_card, move_in_date)
-        VALUES (#{name}, #{gender}, #{phone}, #{idCard}, #{moveInDate})
+        INSERT INTO owner (name, gender, phone, id_card, move_in_date, created_at, updated_at)
+        VALUES (#{name}, #{gender}, #{phone}, #{idCard}, #{moveInDate}, #{createdAt}, #{updatedAt})
     </insert>
 
     <!-- 修改 -->
@@ -81,6 +79,7 @@
             <if test="phone != null">phone = #{phone},</if>
             <if test="idCard != null">id_card = #{idCard},</if>
             <if test="moveInDate != null">move_in_date = #{moveInDate},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
         </set>
         WHERE id = #{id}
     </update>
